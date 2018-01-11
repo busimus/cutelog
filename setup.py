@@ -4,7 +4,7 @@ from os.path import dirname, join
 from setuptools import setup
 
 
-VERSION = '1.0.2'
+VERSION = '1.0.3'
 
 
 # def build_qt_resources():
@@ -42,7 +42,7 @@ setup(
         "Topic :: System :: Logging",
         "Topic :: System :: Monitoring",
     ],
-    download_url="https://github.com/busimus/cutelog/archive/cutelog-{}.zip".format(VERSION),
+    download_url="https://github.com/Busimus/cutelog/archive/{}.zip".format(VERSION),
     entry_points={'console_scripts': 'cutelog=cutelog.__main__:main'},
     include_package_data=True,
     install_requires=['PyQt5;platform_system=="Darwin"',    # it's better to use distro-supplied

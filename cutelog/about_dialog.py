@@ -15,3 +15,4 @@ class AboutDialog(*AboutDialogBase):
 
     def setupUi(self):
         super().setupUi(self)
+        self.nameLabel.setText(CONFIG.full_name)

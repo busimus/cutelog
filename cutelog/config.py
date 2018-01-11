@@ -1,7 +1,7 @@
 import os
 import sys
 import logging
-from pkg_resources import resource_filename
+from pkg_resources import resource_filename, get_distribution
 from collections import namedtuple
 from PyQt5 import QtCore
 from PyQt5.QtCore import QCoreApplication, QObject, pyqtSignal
@@ -66,6 +66,8 @@ class Config(QObject):
         self.options = None
         self.option_spec = self.load_option_spec()
         self.options = self.load_options()
+        self.full_name = f"{QCoreApplication.applicationName()} "\
+                         f"{QCoreApplication.applicationVersion()}"
 
         # options that need fast access are also definded as attributes, which
         # are updated by calling update_attributes()
@@ -231,7 +233,8 @@ def init_qt_info():
     QCoreApplication.setOrganizationName('busimus')
     QCoreApplication.setOrganizationDomain('busz.me')
     QCoreApplication.setApplicationName('cutelog')
-    QCoreApplication.setApplicationVersion('1.0.2')
+    version = get_distribution(QCoreApplication.applicationName()).version
+    QCoreApplication.setApplicationVersion(version)
 
 
 def init_logging():
