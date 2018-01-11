@@ -33,7 +33,13 @@ class SettingsDialog(*SettingsDialogBase):
                                            'Smaller number means smoother UI, but '
                                            'might hinder performance of some things.')
 
-        self.benchmarkCheckBox.setToolTip('Has effect after a restart, for testing only.')
+        self.benchmarkCheckBox.setToolTip('Has effect after restarting the server, '
+                                          '<b>for testing purposes only</b>.')
+
+        self.oneTabCheckBox.setToolTip("Forces all connections into one tab. "
+                                       "Useful for when you're restarting one "
+                                       "program very often.")
+        self.oneTabLabel.setBuddy(self.oneTabCheckBox)
 
     def load_from_config(self):
         # Appearance page
@@ -55,6 +61,7 @@ class SettingsDialog(*SettingsDialogBase):
         self.listenHostLine.setText(CONFIG['listen_host'])
         self.listenPortLine.setValidator(QIntValidator(0, 65535, self))
         self.listenPortLine.setText(str(CONFIG['listen_port']))
+        self.oneTabCheckBox.setChecked(CONFIG['one_tab_mode'])
 
         # Advanced page
         self.logLevelLine.setValidator(QIntValidator(0, 1000, self))
@@ -92,6 +99,7 @@ class SettingsDialog(*SettingsDialogBase):
         o['listen_host'] = self.listenHostLine.text()
         o['listen_port'] = int(self.listenPortLine.text())
         o['console_logging_level'] = int(self.logLevelLine.text())
+        o['one_tab_mode'] = self.oneTabCheckBox.isChecked()
 
         # Advanced
         o['loop_event_delay'] = float(self.loopEventDelayLine.text())

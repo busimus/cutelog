@@ -1,7 +1,7 @@
 # cutelog - GUI for Python's logging module
 
 This is a graphical log viewer for Python's standard logging module.
-It can be targeted as a SocketHandler with no additional setup (see Usage section).
+It can be targeted as a SocketHandler with no additional setup (see [Usage](#usage)).
 
 The program is in beta: it's lacking some features and may be unstable, but it works.
 cutelog is cross-platform, although it's mainly written and optimized for Linux.

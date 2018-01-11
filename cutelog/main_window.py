@@ -199,15 +199,25 @@ class MainWindow(*MainWindowBase):
         self.finished.set()
 
     def on_connection(self, conn, name, tab_closed):
-        new_tab = QWidget(self)
-        name = self.make_logger_name_unique(name)
-        new_logger = LoggerTab(name, tab_closed, self.log, self.loop, self, new_tab)
-        new_logger.set_dark_theme(self.dark_theme)
+        self.log.debug('New connection: "{name}"')
+        one_tab_mode = CONFIG['one_tab_mode'] and len(self.loggers_by_name) > 0
+
+        if one_tab_mode:
+            new_logger = list(self.loggers_by_name.values())[0]
+            new_tab = new_logger.parent_widget
+        else:
+            new_tab = QWidget(self)
+            name = self.make_logger_name_unique(name)
+            new_logger = LoggerTab(name, tab_closed, self.log, self.loop, self, new_tab)
+            new_logger.set_dark_theme(self.dark_theme)
+
         conn.new_record.connect(new_logger.on_record)
 
         new_tab.logger = new_logger
-        self.connectionTabWidget.addTab(new_tab, name)
-        self.loggers_by_name[name] = new_logger
+        if not one_tab_mode:
+            self.connectionTabWidget.addTab(new_tab, name)
+            self.loggers_by_name[name] = new_logger
+
         if self.server.benchmark and name == 'benchmark':
             self.loop.create_task(new_logger.monitor())
 
