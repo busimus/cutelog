@@ -1,0 +1,33 @@
+<RCC>
+  <qresource prefix="/">
+      <file alias="cutelog.png">images/cutelog.png</file>
+      <file alias="light_theme.qss">light_theme.qss</file>
+      <file alias="dark_theme.qss">dark_theme.qss</file>
+  </qresource>
+  <qresource prefix="dark_theme/icons">
+    <file alias="cross">icons/dark_theme/ion-cross.svg</file>
+    <file alias="check">icons/dark_theme/ion-check.svg</file>
+    <file alias="search">icons/dark_theme/ion-search.svg</file>
+    <file alias="arrow-up">icons/dark_theme/ion-up.svg</file>
+    <file alias="arrow-down">icons/dark_theme/ion-down.svg</file>
+    <file alias="arrow-left">icons/dark_theme/ion-left.svg</file>
+    <file alias="arrow-right">icons/dark_theme/ion-right.svg</file>
+  </qresource>
+  <qresource prefix="light_theme/icons">
+    <file alias="cross">icons/light_theme/ion-cross.svg</file>
+    <file alias="check">icons/light_theme/ion-check.svg</file>
+    <file alias="search">icons/light_theme/ion-search.svg</file>
+    <file alias="arrow-up">icons/light_theme/ion-up.svg</file>
+    <file alias="arrow-down">icons/light_theme/ion-down.svg</file>
+    <file alias="arrow-left">icons/light_theme/ion-left.svg</file>
+    <file alias="arrow-right">icons/light_theme/ion-right.svg</file>
+  </qresource>
+  <qresource prefix="/ui">
+      <file alias="logger.ui">ui/logger.ui</file>
+      <file alias="main_window.ui">ui/main_window.ui</file>
+      <file alias="about_dialog.ui">ui/about_dialog.ui</file>
+      <file alias="settings_dialog.ui">ui/settings_dialog.ui</file>
+      <file alias="merge_dialog.ui">ui/merge_dialog.ui</file>
+  </qresource>
+</RCC>
+

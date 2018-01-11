@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=cutelog
+Comment=GUI for Python's logging module
+Exec=cutelog
+Icon=cutelog
+Type=Application
+Terminal=false
+Categories=Development
