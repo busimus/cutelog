@@ -643,6 +643,9 @@ class LoggerTab(*LoggerTabBase):
         enable_all_action.triggered.connect(self.enable_all_levels)
         disable_all_action = menu.addAction("Disable all")
         disable_all_action.triggered.connect(self.disable_all_levels)
+        menu.addSeparator()
+        edit_action  = menu.addAction("Edit selected level")
+        edit_action.triggered.connect(self.open_edit_level_dialog)
         menu.popup(self.levelsTable.viewport().mapToGlobal(position))
 
     def open_logger_table_menu(self, position):
@@ -733,17 +736,25 @@ class LoggerTab(*LoggerTabBase):
 
     def level_double_clicked(self, index):
         row, column = index.row(), index.column()
-        if column == 0:
+        if column == 0:  # if you're clicking at the checkbox widget, just toggle it instead
             checkbox = self.levelsTable.cellWidget(row, column).children()[1]
             checkbox.toggle()
             self.reset_master()
         else:
-            levelno = self.levelsTable.item(row, 1).data(Qt.DisplayRole)
-            level = self.level_filter.levels[int(levelno)]
-            d = LevelEditDialog(self.main_window, level)
-            d.setWindowModality(Qt.NonModal)
-            d.setWindowTitle('Level editor')
-            d.open()
+            self.open_edit_level_dialog(row)
+
+    def open_edit_level_dialog(self, row=None):
+        if not row:
+            selected = self.levelsTable.selectedIndexes()
+            if not selected:
+                return
+            row = selected[0].row()
+        levelno = self.levelsTable.item(row, 1).data(Qt.DisplayRole)
+        level = self.level_filter.levels[int(levelno)]
+        d = LevelEditDialog(self.main_window, level)
+        d.setWindowModality(Qt.NonModal)
+        d.setWindowTitle('Level editor')
+        d.open()
 
     def create_level(self):
         self.log.warn('Creating level')

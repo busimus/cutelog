@@ -200,6 +200,7 @@ class MainWindow(*MainWindowBase):
 
     def on_connection(self, conn, name, tab_closed):
         new_tab = QWidget(self)
+        name = self.make_logger_name_unique(name)
         new_logger = LoggerTab(name, tab_closed, self.log, self.loop, self, new_tab)
         new_logger.set_dark_theme(self.dark_theme)
         conn.new_record.connect(new_logger.on_record)
@@ -230,7 +231,6 @@ class MainWindow(*MainWindowBase):
         self.log.debug('Restarting the server')
         self.stop_reason = 'restart'
         self.stop_signal.set()
-        self.server.close_server()
 
     # async def wait_server_closed(self):
     #     self.log.debug('Waiting for the server to close')
@@ -249,7 +249,6 @@ class MainWindow(*MainWindowBase):
         if self.server_running:
             self.stop_reason = 'pause'
             self.stop_signal.set()
-            self.server.close_server()
             self.actionStartStopServer.setText('Start server')
         else:
             self.start_server_again.set()

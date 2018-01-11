@@ -433,6 +433,13 @@ QComboBox:!editable:on, QComboBox::drop-down:editable:on {
     background: #4368A5;
 }
 
+QComboBox::indicator{
+    background-color: transparent;
+    selection-background-color: transparent;
+    color: transparent;
+    selection-color: transparent;
+}
+
 
 QSpinBox {
     height: 20px;

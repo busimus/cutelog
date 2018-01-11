@@ -4,7 +4,7 @@ from os.path import dirname, join
 from setuptools import setup
 
 
-VERSION = '1.0.3'
+VERSION = '1.0.4'
 
 
 # def build_qt_resources():
