@@ -60,7 +60,7 @@ class MainWindow(*MainWindowBase):
         self.actionPopIn.triggered.connect(self.pop_in_tabs_dialog)
         self.actionDarkTheme.toggled.connect(self.toggle_dark_theme)
 
-        self.actionReloadStyle.triggered.connect(self.reload_stylesheet)
+        # self.actionReloadStyle.triggered.connect(self.reload_stylesheet)
         self.actionRestartServer.triggered.connect(self.restart_server)
         self.actionStartStopServer.triggered.connect(self.start_or_stop_server)
 
@@ -86,7 +86,7 @@ class MainWindow(*MainWindowBase):
         self.actionDarkTheme = self.menuFile.addAction('Dark Theme')
         self.actionDarkTheme.setCheckable(True)
         self.actionDarkTheme.setChecked(self.dark_theme)
-        self.actionReloadStyle = self.menuFile.addAction('Reload style')
+        # self.actionReloadStyle = self.menuFile.addAction('Reload style')
         self.actionSettings = self.menuFile.addAction('Settings')
         self.menuFile.addSeparator()
         self.actionQuit = self.menuFile.addAction('Quit')
@@ -116,7 +116,7 @@ class MainWindow(*MainWindowBase):
     def setup_shortcuts(self):
         self.actionQuit.setShortcut('Ctrl+Q')
         self.actionDarkTheme.setShortcut('Ctrl+S')
-        self.actionReloadStyle.setShortcut('Ctrl+R')
+        # self.actionReloadStyle.setShortcut('Ctrl+R')
         self.actionSettings.setShortcut('Ctrl+A')
         self.actionCloseTab.setShortcut('Ctrl+W')
 

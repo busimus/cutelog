@@ -68,6 +68,7 @@ log.info('Hello world!')
 ### Code improvements:
 * [ ] Proper exception handling in critical places
 * [ ] Message boxes for errors to avoid relying on CLI logging
+* [ ] Ability to ignore resources.py and instead use actual files for quick stylesheet reload, etc.
 
 ### Dreams, uncertainties, and low priority improvements:
 * [ ] Rewrite all/most UIs in code instead of using Qt Designer
