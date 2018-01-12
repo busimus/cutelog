@@ -3,7 +3,7 @@ import json
 
 from PyQt5.QtCore import Qt, pyqtSignal, QObject, QEvent
 from PyQt5.QtWidgets import (QDialog, QDialogButtonBox, QListWidget,
-                             QListWidgetItem, QMenu, QVBoxLayout)
+                             QListWidgetItem, QVBoxLayout)
 
 from .config import CONFIG
 
@@ -31,7 +31,7 @@ class Column:
         self.width = int(d['width'])
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(name={self.name}, title={self.title})"
+        return "{}(name={}, title={})".format(self.__class__.__name__, self.name, self.title)
 
 
 DEFAULT_COLUMNS = [
@@ -195,9 +195,9 @@ class HeaderEditDialog(QDialog):
     #
     # def save_preset(self, action):
     #     result = []
-    #     for i in range(self.columnList.count()):  # column list has to be generated here because if
-    #         item = self.columnList.item(i)        # you rearrange and save, then what gets saved is
-    #         result.append(item.column)            # the un-rearranged list from the table header
+    #     for i in range(self.columnList.count()): # column list has to be generated here because if
+    #         item = self.columnList.item(i)       # you rearrange and save, then what gets saved is
+    #         result.append(item.column)           # the un-rearranged list from the table header
     #
     #     name = action.text()
     #     if action.property('new'):

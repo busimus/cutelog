@@ -2,10 +2,11 @@ import logging
 import os
 import sys
 from collections import namedtuple
+from platform import python_version
 
 from pkg_resources import get_distribution, resource_filename
-from PyQt5.QtCore import (QCoreApplication, QFile, QObject, QSettings, Qt,
-                          pyqtSignal)
+from PyQt5.QtCore import (QT_VERSION_STR, QCoreApplication, QFile, QObject,
+                          QSettings, Qt, pyqtSignal)
 
 # from PyQt5.QtGui import QFont
 
@@ -16,6 +17,17 @@ elif sys.platform == 'darwin':
     DEFAULT_FONT = 'Helvetica Neue'
 else:
     DEFAULT_FONT = 'Sans'
+
+
+# @Future: when the time is right, remove everything related to this mess:
+PY35_COMPAT = python_version().startswith('3.5')
+
+# @Future: when Qt 5.6 becomes standard, remove this:
+QT_VER = QT_VERSION_STR.split('.')
+if QT_VER[0] == '5' and int(QT_VER[1]) < 6:
+    QT55_COMPAT = True
+else:
+    QT55_COMPAT = False
 
 
 # There must be a better way to do this, right?
@@ -69,8 +81,8 @@ class Config(QObject):
         self.options = None
         self.option_spec = self.load_option_spec()
         self.options = self.load_options()
-        self.full_name = f"{QCoreApplication.applicationName()} "\
-                         f"{QCoreApplication.applicationVersion()}"
+        self.full_name = "{} {}".format(QCoreApplication.applicationName(),
+                                        QCoreApplication.applicationVersion())
 
         # options that need fast access are also definded as attributes, which
         # are updated by calling update_attributes()
@@ -84,11 +96,11 @@ class Config(QObject):
         # self.save_options()
 
     def __getitem__(self, name):
-        # self.log.debug(f'Getting "{name}"')
+        # self.log.debug('Getting "{}"'.format(name))
         value = self.options.get(name, None)
         if value is None:
-            raise Exception(f'No option with name "{name}"')
-        # self.log.debug(f'Returning "{value}"')
+            raise Exception('No option with name "{}"'.format(name))
+        # self.log.debug('Returning "{}"'.format(value))
         return value
 
     @staticmethod
@@ -96,13 +108,13 @@ class Config(QObject):
         data_dir = resource_filename('cutelog', directory)
         path = os.path.join(data_dir, name)
         if not os.path.exists(path):
-            raise FileNotFoundError(f'Resource file not found in this path: "{path}"')
+            raise FileNotFoundError('Resource file not found in this path: "{}"'.format(path))
         return path
 
     def get_ui_qfile(self, name):
-        file = QFile(f':/ui/{name}')
+        file = QFile(':/ui/{}'.format(name))
         if not file.exists():
-            raise FileNotFoundError(f'ui file not found: ":/ui/{name}"')
+            raise FileNotFoundError('ui file not found: ":/ui/{}"'.format(name))
         file.open(QFile.ReadOnly)
         return file
 
@@ -111,7 +123,7 @@ class Config(QObject):
         host = self.options.get('listen_host', None)
         port = self.options.get('listen_port', None)
         if host is None or port is None:
-            raise Exception('Listen host or port not in options: "{host}:{port}"')
+            raise Exception('Listen host or port not in options: "{}:{}"'.format(host, port))
         return (host, port)
 
     def load_option_spec(self):
@@ -190,7 +202,7 @@ class Config(QObject):
         return result
 
     def save_header_preset(self, name, columns):
-        self.log.debug(f'Saving header preset "{name}"')
+        self.log.debug('Saving header preset "{}"'.format(name))
         s = self.qsettings
         s.beginGroup('Header_Presets')
         s.beginWriteArray(name, len(columns))
@@ -202,7 +214,7 @@ class Config(QObject):
 
     def load_header_preset(self, name):
         from .logger_table_header import Column
-        self.log.debug(f'Loading header preset "{name}"')
+        self.log.debug('Loading header preset "{}"'.format(name))
         s = self.qsettings
         result = []
         if name not in self.get_header_presets():
@@ -238,18 +250,24 @@ def init_qt_info():
     QCoreApplication.setApplicationName('cutelog')
     version = get_distribution(QCoreApplication.applicationName()).version
     QCoreApplication.setApplicationVersion(version)
-    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+    if not QT55_COMPAT:  # this attribute was introduced in Qt 5.6
+        QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 
 
 def init_logging():
     log = logging.getLogger('CL')
     term_handler = logging.StreamHandler()
 
+    if PY35_COMPAT:
+        exc = ImportError
+    else:
+        exc = ModuleNotFoundError
+
     try:
         import colorlog
         fmt = colorlog.ColoredFormatter('%(asctime)s %(log_color)s[%(name)12s:%(lineno)3s'
                                         ' %(funcName)18s ]\t%(levelname)-.6s  %(message)s')
-    except ModuleNotFoundError:
+    except exc:
         fmt = logging.Formatter('%(asctime)s [%(name)12s:%(lineno)3s '
                                 '%(funcName)18s ]\t%(levelname)-.6s  %(message)s')
 

@@ -49,8 +49,9 @@ class LogLevel:
             self.__dict__[attr] = deepcopy(other_level.__dict__[attr])
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(levelname={self.levelname}, "\
-                "levelno={self.levelno}, enabled={self.enabled})"
+        return "{}(levelname={}, "\
+               "levelno={}, enabled={})".format(self.__class.__name__, self.levelname,
+                                                self.levelno, self.enabled)
 
 
 DEFAULT_LEVELS = \

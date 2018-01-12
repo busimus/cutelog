@@ -38,8 +38,8 @@ Or install the latest development version from the source::
 
 Requirements
 ------------
-* Python 3.6 (or newer)
-* PyQt5
+* Python 3.5 (or newer)
+* PyQt5 (preferably 5.6 or newer)
 
 Usage
 =====

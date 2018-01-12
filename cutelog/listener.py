@@ -45,12 +45,13 @@ class LogServer(QTcpServer):
             err_string = self.errorString()
             show_critical_dialog(self.main_window, 'Error while starting the server', err_string)
         else:
-            self.main_window.set_status(f'Server is listening on {self.host.toString()}:{self.port}...')
+            address = "{}:{}".format(self.host.toString(), self.port)
+            self.main_window.set_status('Server is listening on {}...'.format(address))
 
     def incomingConnection(self, socketDescriptor):
         self.connections += 1
-        name = f'Logger {self.connections}'
-        self.log.info(f'New connection: "{name}"')
+        name = 'Logger {}'.format(self.connections)
+        self.log.info('New connection: "{}"'.format(name))
         tab_closed = asyncio.Event()
         new_conn = LogConnection(self, socketDescriptor, name,
                                  self.stop_signal, tab_closed, self.log)
@@ -71,16 +72,16 @@ class LogServer(QTcpServer):
             thread.exit()
         for _, thread in self.threads.items():
             if not thread.wait(1000):
-                self.log.error(f'Thread "{thread}" didn\'t stop in time, attempring termination')
+                self.log.error('Thread "{}" didn\'t stop in time, terminating...'.format(thread))
                 thread.terminate()
-                self.log.error(f'Thread "{thread}" terminated')
+                self.log.error('Thread "{}" terminated'.format(thread))
         self.log.debug('All connections stopped')
 
     def cleanup_connection(self, socketDescriptor):
         try:
             del self.threads[socketDescriptor]
         except Exception as e:
-            self.log.error(f'Bad socketDescriptor: {socketDescriptor}', exc_info=True)
+            self.log.error('Bad socketDescriptor: {}'.format(socketDescriptor), exc_info=True)
             # import pdb; pdb.set_trace()
 
 
@@ -99,7 +100,7 @@ class LogConnection(QThread):
         self.tab_closed = tab_closed
 
     def run(self):
-        self.log.debug(f'Connection "{self.name}" is starting')
+        self.log.debug('Connection "{}" is starting'.format(self.name))
 
         def wait_and_read(n_bytes, wait_ms):
             "Convinience function that simplifies checking for stop events, etc."
@@ -116,7 +117,7 @@ class LogConnection(QThread):
 
         while True:
             if sock.state() != sock.ConnectedState or self.need_to_stop():
-                self.log.debug(f'Connection "{self.name}" is stopping')
+                self.log.debug('Connection "{}" is stopping'.format(self.name))
                 break
             read_len = wait_and_read(4, 100)
             if not read_len:
@@ -135,7 +136,7 @@ class LogConnection(QThread):
         sock.disconnectFromHost()
         sock.close()
         self.connection_finished.emit(int(self.socketDescriptor))
-        self.log.debug(f'Connection "{self.name}" has stopped')
+        self.log.debug('Connection "{}" has stopped'.format(self.name))
 
     def need_to_stop(self):
         return any([self.stop_signal.is_set(), self.tab_closed.is_set()])
@@ -170,7 +171,7 @@ class BenchmarkConnection(LogConnection):
         while True:
             if self.need_to_stop():
                 break
-            d['msg'] = f"hey {c}"
+            d['msg'] = "hey {}".format(c)
             t = time.time()
             d['created'] = t
             d['msecs'] = t % 1 * 1000

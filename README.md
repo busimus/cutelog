@@ -36,8 +36,8 @@ $ pip install git+https://github.com/busimus/cutelog.git
 ```
 
 ### Requirements
-* Python 3.6 (or newer)
-* PyQt5
+* Python 3.5 (or newer)
+* PyQt5 (preferably 5.6 or newer)
 
 ## Usage
 1. Start `cutelog`

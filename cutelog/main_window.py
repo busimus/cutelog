@@ -185,7 +185,7 @@ class MainWindow(*MainWindowBase):
             await self.stop_signal.wait()
             self.server.close_server()
             self.server_running = False
-            self.log.debug(f'Run got the stop_signal with reason {self.stop_reason}')
+            self.log.debug('Run got the stop_signal with reason {}'.format(self.stop_reason))
             if self.stop_reason == 'restart':
                 # await self.wait_server_closed()
                 continue
@@ -199,7 +199,7 @@ class MainWindow(*MainWindowBase):
         self.finished.set()
 
     def on_connection(self, conn, name, tab_closed):
-        self.log.debug('New connection: "{name}"')
+        self.log.debug('New connection: "{}"'.format(name))
         one_tab_mode = CONFIG['one_tab_mode'] and len(self.loggers_by_name) > 0
 
         if one_tab_mode:
@@ -222,7 +222,7 @@ class MainWindow(*MainWindowBase):
             self.loop.create_task(new_logger.monitor())
 
     def make_logger_name_unique(self, name):
-        name_f = f"{name} {{}}"
+        name_f = "{} {{}}".format(name)
         c = 1
         while name in self.loggers_by_name:
             name = name_f.format(c)
@@ -273,21 +273,22 @@ class MainWindow(*MainWindowBase):
             return
 
         d = QInputDialog(self)
-        d.setLabelText(f'Enter the new name for the "{logger.name}" tab:')
-        d.setWindowTitle(f'Rename the "{logger.name}" tab')
+        d.setLabelText('Enter the new name for the "{}" tab:'.format(logger.name))
+        d.setWindowTitle('Rename the "{}" tab'.format(logger.name))
         d.textValueSelected.connect(self.change_current_tab_name)
         d.open()
 
     def change_current_tab_name(self, new_name):
         tab, logger, index = self.get_current_tab_logger_index()
         if new_name in self.loggers_by_name and new_name != logger.name:
-            show_warning_dialog(self, "Rename error", f'Logger named "{new_name}" already exists.')
+            show_warning_dialog(self, "Rename error",
+                                'Logger named "{}" already exists.'.format(new_name))
             return
-        self.log.debug(f'Renaming logger "{logger.name}" to "{new_name}"')
+        self.log.debug('Renaming logger "{}" to "{}"'.format(logger.name, new_name))
         del self.loggers_by_name[logger.name]
         logger.name = new_name
         self.loggers_by_name[new_name] = logger
-        logger.log.name = '.'.join(logger.log.name.split('.')[:-1]) + f'.{new_name}'
+        logger.log.name = '.'.join(logger.log.name.split('.')[:-1]) + '.{}'.format(new_name)
         self.connectionTabWidget.setTabText(index, new_name)
 
     def trim_records_dialog(self):
@@ -298,8 +299,8 @@ class MainWindow(*MainWindowBase):
         d = QInputDialog(self)
         d.setInputMode(QInputDialog.IntInput)
         d.setIntRange(0, 100000000)  # because it sets intMaximum to 99 by default. why??
-        d.setLabelText(f'Keep this many records out of {logger.record_model.rowCount()}:')
-        d.setWindowTitle(f'Trim tab records of "{logger.name}" logger')
+        d.setLabelText('Keep this many records out of {}:'.format(logger.record_model.rowCount()))
+        d.setWindowTitle('Trim tab records of "{}" logger'.format(logger.name))
         d.intValueSelected.connect(self.trim_current_tab_records)
         d.open()
 
@@ -317,9 +318,9 @@ class MainWindow(*MainWindowBase):
         d.setIntRange(0, 100000000)  # because it sets intMaximum to 99 by default. why??
         max_now = logger.record_model.max_capacity
         max_now = "not set" if max_now is None else max_now
-        d.setLabelText(f'Set max capacity for "{logger.name}" logger'
-                       f'\nCurrently {max_now}. Set to 0 to disable:')
-        d.setWindowTitle(f'Set max capacity')
+        label_str = 'Set max capacity for "{}" logger\nCurrently {}. Set to 0 to disable:'
+        d.setLabelText(label_str.format(logger.name, max_now))
+        d.setWindowTitle('Set max capacity')
         d.intValueSelected.connect(self.set_max_capacity)
         d.open()
 
@@ -334,7 +335,7 @@ class MainWindow(*MainWindowBase):
         d.show()
 
     def merge_tabs(self, dst, srcs):
-        self.log.debug(f'Merging tabs: dst="{dst}", srcs={srcs}')
+        self.log.debug('Merging tabs: dst="{}", srcs={}'.format(dst, srcs))
 
         dst_logger = self.loggers_by_name[dst]
         for src_name in srcs:
@@ -353,14 +354,14 @@ class MainWindow(*MainWindowBase):
         self.close_tab(index)
 
     def close_tab(self, index):
-        self.log.debug(f"Tab close requested: {index}")
+        self.log.debug("Tab close requested: {}".format(index))
         tab = self.connectionTabWidget.widget(index)
         self.connectionTabWidget.removeTab(index)
         logger = self.destroy_tab(tab)
         self.destroy_logger(logger)
 
     def destroy_tab(self, tab):
-        "Returns the logger t"
+        "Returns the logger of the tab"
         logger = tab.logger
         tab.setParent(None)
         del tab
@@ -392,12 +393,12 @@ class MainWindow(*MainWindowBase):
         tab, logger, index = self.get_current_tab_logger_index()
         if not tab:
             return
-        self.log.debug(f"Tab pop out requested: {int(index)}")
+        self.log.debug("Tab pop out requested: {}".format(int(index)))
 
         tab.destroyed.connect(logger.closeEvent)
         tab.setAttribute(Qt.WA_DeleteOnClose, True)
         tab.setWindowFlags(Qt.Window)
-        tab.setWindowTitle(f'cutelog: "{self.connectionTabWidget.tabText(index)}"')
+        tab.setWindowTitle('cutelog: "{}"'.format(self.connectionTabWidget.tabText(index)))
         self.connectionTabWidget.removeTab(index)
         logger.popped_out = True
         tab.show()
@@ -411,7 +412,7 @@ class MainWindow(*MainWindowBase):
 
     def pop_in_tabs(self, names):
         for name in names:
-            self.log.debug(f'Popping in logger "{name}"')
+            self.log.debug('Popping in logger "{}"'.format(name))
             logger = self.loggers_by_name[name]
             self.pop_in_tab(logger)
 

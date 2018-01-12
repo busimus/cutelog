@@ -4,7 +4,7 @@ from os.path import dirname, join
 from setuptools import setup
 
 
-VERSION = '1.0.6'
+VERSION = '1.1.0'
 
 
 # def build_qt_resources():
@@ -23,7 +23,7 @@ setup(
     url="https://github.com/busimus/cutelog/",
 
     requires=['PyQt5'],
-    python_requires=">=3.6",
+    python_requires=">=3.5",
 
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -36,7 +36,7 @@ setup(
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3 :: Only",
         "Topic :: Software Development :: Quality Assurance",
         "Topic :: System :: Logging",

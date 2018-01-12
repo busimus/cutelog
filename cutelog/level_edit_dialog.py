@@ -229,21 +229,21 @@ class LevelEditDialog(QDialog):
         # Setting the pallette doesn't override the global stylesheet,
         # which is why I can't just set pallete with needed colors here.
 
-        self.previewLine.setStyleSheet(f"""QLineEdit {{
-                                               color: {self.fg.name()};
-                                               background: {self.bg.name()}
-                                           }}""")
+        self.previewLine.setStyleSheet("""QLineEdit {{
+                                               color: {};
+                                               background: {}
+                                          }}""".format(self.fg.name(), self.bg.name()))
 
-        self.previewLineDark.setStyleSheet(f"""QLineEdit {{
-                                                   color: {self.fgDark.name()};
-                                                   background: {self.bgDark.name()}
-                                               }}""")
+        self.previewLineDark.setStyleSheet("""QLineEdit {{
+                                                   color: {};
+                                                   background: {}
+                                              }}""".format(self.fgDark.name(), self.bgDark.name()))
 
-        self.bgColorPreview.setStyleSheet(f'QLineEdit {{background: {self.bg.name()} }}')
-        self.fgColorPreview.setStyleSheet(f'QLineEdit {{background: {self.fg.name()} }}')
+        self.bgColorPreview.setStyleSheet('QLineEdit {{background: {} }}'.format(self.bg.name()))
+        self.fgColorPreview.setStyleSheet('QLineEdit {{background: {} }}'.format(self.fg.name()))
 
-        self.bgColorPreviewDark.setStyleSheet(f'QLineEdit {{ background: {self.bgDark.name()} }}')
-        self.fgColorPreviewDark.setStyleSheet(f'QLineEdit {{ background: {self.fgDark.name()} }}')
+        self.bgColorPreviewDark.setStyleSheet('QLineEdit {{ background: {} }}'.format(self.bgDark.name()))
+        self.fgColorPreviewDark.setStyleSheet('QLineEdit {{ background: {} }}'.format(self.fgDark.name()))
 
         font = self.previewLine.font()
         font.setBold(self.bold)

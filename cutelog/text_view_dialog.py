@@ -1,4 +1,3 @@
-from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QApplication, QDialog, QHBoxLayout, QLayout,
                              QPlainTextEdit, QPushButton, QSizePolicy,

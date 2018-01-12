@@ -48,7 +48,7 @@ class TreeNode:
             return 0
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(name={self.name}, path={self.path})"
+        return "{}(name={}, path={})".format(self.__class__.__name__, self.name, self.path)
 
 
 class LogNamespaceTreeModel(QAbstractItemModel):
@@ -272,7 +272,7 @@ class RecordFilter(QSortFilterProxyModel):
                             result = True
                         elif not self.selection_includes_children and name == path:
                             result = True
-                        elif self.selection_includes_children and name.startswith(f'{path}.'):
+                        elif self.selection_includes_children and name.startswith('{}.'.format(path)):
                             result = True
                         else:
                             result = False
@@ -355,7 +355,7 @@ class LoggerTab(*LoggerTabBase):
     def __init__(self, name, tab_closed_signal, log, loop, main_window, parent_widget):
         super().__init__()
         self.log = log.getChild(name)
-        self.log.debug(f'Starting a logger named {name}')
+        self.log.debug('Starting a logger named {}'.format(name))
         self.name = name
         self.main_window = main_window
         self.parent_widget = parent_widget
@@ -500,11 +500,6 @@ class LoggerTab(*LoggerTabBase):
         self.record_model.max_capacity = max_capacity
         self.record_model.trim_if_needed()
 
-    def header_section_resized(self, index, oldw, neww):
-        if index == 4:
-            return
-        self.log.warn(f"index = {index}, {oldw} -> {neww}")
-
     def eventFilter(self, object, event):
         if event.type() == QEvent.KeyPress:
             if event.key() == Qt.Key_Space or event.key() == Qt.Key_Return:
@@ -535,7 +530,7 @@ class LoggerTab(*LoggerTabBase):
 
         hits = self.filter_model.match(start, SearchRole, s, 1, Qt.MatchWrap | search_flags)
         if not hits:
-            self.log.warn(f'No matches for {s}')
+            self.log.warn('No matches for {}'.format(s))
             self.search_start = 0
         else:
             result = hits[0]
@@ -644,7 +639,7 @@ class LoggerTab(*LoggerTabBase):
         disable_all_action = menu.addAction("Disable all")
         disable_all_action.triggered.connect(self.disable_all_levels)
         menu.addSeparator()
-        edit_action  = menu.addAction("Edit selected level")
+        edit_action = menu.addAction("Edit selected level")
         edit_action.triggered.connect(self.open_edit_level_dialog)
         menu.popup(self.levelsTable.viewport().mapToGlobal(position))
 
@@ -804,7 +799,7 @@ class LoggerTab(*LoggerTabBase):
         records = []
         while True:
             await asyncio.sleep(0.5)
-            status = f"{self.monitor_count * 2} rows/s"
+            status = "{} rows/s".format(self.monitor_count * 2)
             if self.monitor_count == 0:
                 break
             records.append(self.monitor_count)
