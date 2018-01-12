@@ -1,10 +1,12 @@
+import logging
 import os
 import sys
-import logging
-from pkg_resources import resource_filename, get_distribution
 from collections import namedtuple
-from PyQt5 import QtCore
-from PyQt5.QtCore import QCoreApplication, QObject, pyqtSignal
+
+from pkg_resources import get_distribution, resource_filename
+from PyQt5.QtCore import (QCoreApplication, QFile, QObject, QSettings, Qt,
+                          pyqtSignal)
+
 # from PyQt5.QtGui import QFont
 
 
@@ -61,7 +63,7 @@ class Config(QObject):
             self.log = logging.getLogger()
             self.log.setLevel(99)
         self.log.debug('Initializing')
-        self.qsettings = QtCore.QSettings()
+        self.qsettings = QSettings()
         self.qsettings.setIniCodec('UTF-8')
 
         self.options = None
@@ -98,10 +100,10 @@ class Config(QObject):
         return path
 
     def get_ui_qfile(self, name):
-        file = QtCore.QFile(f':/ui/{name}')
+        file = QFile(f':/ui/{name}')
         if not file.exists():
             raise FileNotFoundError(f'ui file not found: ":/ui/{name}"')
-        file.open(QtCore.QFile.ReadOnly)
+        file.open(QFile.ReadOnly)
         return file
 
     @property
@@ -236,6 +238,7 @@ def init_qt_info():
     QCoreApplication.setApplicationName('cutelog')
     version = get_distribution(QCoreApplication.applicationName()).version
     QCoreApplication.setApplicationVersion(version)
+    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 
 
 def init_logging():

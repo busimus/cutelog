@@ -81,7 +81,7 @@ log.info('Hello world!')
 
 ## Attributions
 Free software used:
-* [PyQt5](https://riverbankcomputing.com/software/pyqt/intro) - GPLv3 License, Copyright (c) 2017 Riverbank Computing Limited <info@riverbankcomputing.com>
+* [PyQt5](https://riverbankcomputing.com/software/pyqt/intro) - GPLv3 License, Copyright (c) 2018 Riverbank Computing Limited <info@riverbankcomputing.com>
 * [ion-icons](https://github.com/ionic-team/ionicons) - MIT License, Copyright (c) 2016 Drifty (http://drifty.com/)
 
 And thanks to [logview](https://pythonhosted.org/logview/) by Vinay Sajip for UI inspiration.

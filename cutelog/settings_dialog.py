@@ -39,7 +39,7 @@ class SettingsDialog(*SettingsDialogBase):
         self.oneTabCheckBox.setToolTip("Forces all connections into one tab. "
                                        "Useful for when you're restarting one "
                                        "program very often.")
-        self.oneTabLabel.setBuddy(self.oneTabCheckBox)
+        self.oneTabLabel.setBuddy(self.oneTabCheckBox)  # @Hmmm: why doesn't this work?
 
     def load_from_config(self):
         # Appearance page
