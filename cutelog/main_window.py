@@ -2,7 +2,7 @@ import asyncio
 
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, QFile, QTextStream
-from PyQt5.QtWidgets import (QInputDialog, QMenuBar, QWidget)
+from PyQt5.QtWidgets import QInputDialog, QMenuBar
 
 from .listener import LogServer
 from .logger_tab import LoggerTab
@@ -31,7 +31,7 @@ class MainWindow(*MainWindowBase):
         self.finished = asyncio.Event()
         self.dark_theme = CONFIG['dark_theme_default']
 
-        self.loggers_by_name = {}  # maps name -> logger
+        self.loggers_by_name = {}  # name -> LoggerTab
 
         # used for starting/stopping the server
         self.server_running = False
@@ -126,7 +126,6 @@ class MainWindow(*MainWindowBase):
     def restore_geometry(self):
         geometry = CONFIG.load_geometry()
         if geometry:
-            # self.move(geometry.x(), geometry.y())  # i don't thing this is a good idea
             self.resize(geometry.width(), geometry.height())
 
     def settings_dialog(self):
@@ -201,24 +200,23 @@ class MainWindow(*MainWindowBase):
         self.log.info('Main window stopped')
         self.finished.set()
 
-    def on_connection(self, conn, name, tab_closed):
+    def on_connection(self, conn, name):
         self.log.debug('New connection: "{}"'.format(name))
         one_tab_mode = CONFIG['one_tab_mode'] and len(self.loggers_by_name) > 0
 
         if one_tab_mode:
             new_logger = list(self.loggers_by_name.values())[0]
-            new_tab = new_logger.parent_widget
+            new_logger.add_connection(conn)
         else:
-            new_tab = QWidget(self)
             name = self.make_logger_name_unique(name)
-            new_logger = LoggerTab(name, tab_closed, self.log, self.loop, self, new_tab)
+            new_logger = LoggerTab(self.connectionTabWidget, name, conn, self.log, self.loop, self)
             new_logger.set_dark_theme(self.dark_theme)
 
         conn.new_record.connect(new_logger.on_record)
+        conn.connection_finished.connect(new_logger.remove_connection)
 
-        new_tab.logger = new_logger
         if not one_tab_mode:
-            self.connectionTabWidget.addTab(new_tab, name)
+            self.connectionTabWidget.addTab(new_logger, name)
             self.loggers_by_name[name] = new_logger
 
         if self.server.benchmark and name == 'benchmark':
@@ -271,8 +269,8 @@ class MainWindow(*MainWindowBase):
         self.statusBar().showMessage(string)
 
     def rename_tab(self):
-        tab, logger, index = self.get_current_tab_logger_index()
-        if not tab or not logger:
+        logger, index = self.current_logger_and_index()
+        if not logger:
             return
 
         d = QInputDialog(self)
@@ -282,7 +280,7 @@ class MainWindow(*MainWindowBase):
         d.open()
 
     def change_current_tab_name(self, new_name):
-        tab, logger, index = self.get_current_tab_logger_index()
+        logger, index = self.current_logger_and_index()
         if new_name in self.loggers_by_name and new_name != logger.name:
             show_warning_dialog(self, "Rename error",
                                 'Logger named "{}" already exists.'.format(new_name))
@@ -295,8 +293,8 @@ class MainWindow(*MainWindowBase):
         self.connectionTabWidget.setTabText(index, new_name)
 
     def trim_records_dialog(self):
-        tab, logger, index = self.get_current_tab_logger_index()
-        if not tab or not logger:
+        logger, index = self.current_logger_and_index()
+        if not logger:
             return
 
         d = QInputDialog(self)
@@ -308,12 +306,12 @@ class MainWindow(*MainWindowBase):
         d.open()
 
     def trim_current_tab_records(self, n):
-        tab, logger, index = self.get_current_tab_logger_index()
+        logger, index = self.current_logger_and_index()
         logger.record_model.trim_except_last_n(n)
 
     def max_capacity_dialog(self):
-        tab, logger, index = self.get_current_tab_logger_index()
-        if not tab or not logger:
+        logger, index = self.current_logger_and_index()
+        if not logger:
             return
 
         d = QInputDialog(self)
@@ -328,7 +326,7 @@ class MainWindow(*MainWindowBase):
         d.open()
 
     def set_max_capacity(self, n):
-        tab, logger, index = self.get_current_tab_logger_index()
+        logger, index = self.current_logger_and_index()
         logger.set_max_capacity(n)
 
     def merge_tabs_dialog(self):
@@ -337,75 +335,67 @@ class MainWindow(*MainWindowBase):
         d.merge_tabs_signal.connect(self.merge_tabs)
         d.show()
 
-    def merge_tabs(self, dst, srcs):
-        self.log.debug('Merging tabs: dst="{}", srcs={}'.format(dst, srcs))
+    def merge_tabs(self, dst, srcs, keep_alive):
+        self.log.debug('Merging tabs: dst="{}", srcs={}, keep={}'.format(dst, srcs, keep_alive))
 
         dst_logger = self.loggers_by_name[dst]
         for src_name in srcs:
             src_logger = self.loggers_by_name[src_name]
-            src_tab = src_logger.parent_widget
 
             dst_logger.merge_with_records(src_logger.record_model.records)
 
+            if keep_alive:
+                for conn in src_logger.connections:
+                    conn.new_record.disconnect(src_logger.on_record)
+                    conn.connection_finished.disconnect(src_logger.remove_connection)
+                    conn.new_record.connect(dst_logger.on_record)
+                src_logger.connections.clear()
             self.destroy_logger(src_logger)
-            self.destroy_tab(src_tab)
 
     def close_current_tab(self):
-        _, _, index = self.get_current_tab_logger_index()
+        _, index = self.current_logger_and_index()
         if index is None:
             return
         self.close_tab(index)
 
     def close_tab(self, index):
         self.log.debug("Tab close requested: {}".format(index))
-        tab = self.connectionTabWidget.widget(index)
+        logger = self.connectionTabWidget.widget(index)
         self.connectionTabWidget.removeTab(index)
-        logger = self.destroy_tab(tab)
         self.destroy_logger(logger)
 
-    def destroy_tab(self, tab):
-        "Returns the logger of the tab"
-        logger = tab.logger
-        tab.setParent(None)
-        del tab
-        return logger
-
     def destroy_logger(self, logger):
-        "Returns the parent QWidget of the logger"
-        tab = logger.parent_widget
-        logger.tab_closed_signal.set()
+        logger.setParent(None)
+        logger.stop_all_connections()
         del self.loggers_by_name[logger.name]
         del logger
-        return tab
 
     def close_popped_out_logger(self, logger):
         del self.loggers_by_name[logger.name]
-        del logger.parent_widget
         del logger
 
-    def get_current_tab_logger_index(self):
+    def current_logger_and_index(self):
         index = self.connectionTabWidget.currentIndex()
         if index == -1:
-            return None, None, None
+            return None, None
 
-        tab = self.connectionTabWidget.widget(index)
-        logger = tab.logger
-        return tab, logger, index
+        logger = self.connectionTabWidget.widget(index)
+        return logger, index
 
     def pop_out_tab(self):
-        tab, logger, index = self.get_current_tab_logger_index()
-        if not tab:
+        logger, index = self.current_logger_and_index()
+        if not logger:
             return
         self.log.debug("Tab pop out requested: {}".format(int(index)))
 
-        tab.destroyed.connect(logger.closeEvent)
-        tab.setAttribute(Qt.WA_DeleteOnClose, True)
-        tab.setWindowFlags(Qt.Window)
-        tab.setWindowTitle('cutelog: "{}"'.format(self.connectionTabWidget.tabText(index)))
+        logger.destroyed.connect(logger.closeEvent)
+        logger.setAttribute(Qt.WA_DeleteOnClose, True)
+        logger.setWindowFlags(Qt.Window)
+        logger.setWindowTitle('cutelog: "{}"'.format(self.connectionTabWidget.tabText(index)))
         self.connectionTabWidget.removeTab(index)
         logger.popped_out = True
-        tab.show()
-        center_widget_on_screen(tab)
+        logger.show()
+        center_widget_on_screen(logger)
 
     def pop_in_tabs_dialog(self):
         d = PopInDialog(self, self.loggers_by_name.values())
@@ -420,13 +410,12 @@ class MainWindow(*MainWindowBase):
             self.pop_in_tab(logger)
 
     def pop_in_tab(self, logger):
-        tab = logger.parent_widget
-        tab.setWindowFlags(Qt.Widget)
-        tab.setAttribute(Qt.WA_DeleteOnClose, False)
-        tab.destroyed.disconnect(logger.closeEvent)
-        tab.setWindowTitle(logger.name)
+        logger.setWindowFlags(Qt.Widget)
+        logger.setAttribute(Qt.WA_DeleteOnClose, False)
+        logger.destroyed.disconnect(logger.closeEvent)
+        logger.setWindowTitle(logger.name)
         logger.popped_out = False
-        self.connectionTabWidget.addTab(tab, tab.windowTitle())
+        self.connectionTabWidget.addTab(logger, logger.windowTitle())
 
     def closeEvent(self, event):
         self.log.info('Close event on main window')
@@ -437,8 +426,7 @@ class MainWindow(*MainWindowBase):
         self.log.debug('Destroying tabs')
         delete_this = list(self.loggers_by_name.values())  # to prevent changing during iteration
         for logger in delete_this:
-            tab = self.destroy_logger(logger)
-            self.destroy_tab(tab)
+            self.destroy_logger(logger)
 
     def shutdown(self, signal=None):
         self.log.info('Shutting down')

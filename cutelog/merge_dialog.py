@@ -22,7 +22,8 @@ class LoggerListItem(QListWidgetItem):
 
 class MergeDialog(*MergeDialogBase):
 
-    merge_tabs_signal = pyqtSignal(str, list)
+    # name of src tab, names of dst tabs, whether to keep connections alive or not
+    merge_tabs_signal = pyqtSignal(str, list, bool)
 
     def __init__(self, parent, loggers):
         super().__init__(parent)
@@ -36,9 +37,11 @@ class MergeDialog(*MergeDialogBase):
     def setupUi(self):
         super().setupUi(self)
         self.loggerList.selectionModel().selectionChanged.connect(self.merge_list_changed)
-        self.mergeComboBox.currentTextChanged.connect(self.merge_dst_changed)
+        self.dstComboBox.currentTextChanged.connect(self.merge_dst_changed)
         self.ok_button = self.buttonBox.button(QDialogButtonBox.Ok)
         self.ok_button.setEnabled(False)
+        self.keepAliveCheckBox.setToolTip("If disabled then only the destination connection "
+                                          "will still be alive after merging.")
 
         self.fill_logger_list()
 
@@ -52,15 +55,15 @@ class MergeDialog(*MergeDialogBase):
         for index in sel:
             sel_item = self.loggerList.itemFromIndex(index)
             self.merge_list.append(sel_item)
-            self.mergeComboBox.addItem(sel_item.name)
+            self.dstComboBox.addItem(sel_item.name)
             self.ok_button.setEnabled(True)
 
         for index in desel:
             desel_item = self.loggerList.itemFromIndex(index)
             self.merge_list.remove(desel_item)
-            row = self.mergeComboBox.findText(desel_item.name)
-            self.mergeComboBox.removeItem(row)
-            if self.mergeComboBox.count() == 0:
+            row = self.dstComboBox.findText(desel_item.name)
+            self.dstComboBox.removeItem(row)
+            if self.dstComboBox.count() == 0:
                 self.ok_button.setEnabled(False)
 
     def merge_dst_changed(self, text):
@@ -69,7 +72,7 @@ class MergeDialog(*MergeDialogBase):
     def accept(self):
         name_list = [item.name for item in self.merge_list]
         name_list.remove(self.merge_dst)
-        self.merge_tabs_signal.emit(self.merge_dst, name_list)
+        self.merge_tabs_signal.emit(self.merge_dst, name_list, self.keepAliveCheckBox.isChecked())
         self.done(0)
 
     def reject(self):

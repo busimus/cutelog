@@ -6,80 +6,84 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>331</width>
-    <height>313</height>
+    <width>341</width>
+    <height>323</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <widget class="QDialogButtonBox" name="buttonBox">
-   <property name="geometry">
-    <rect>
-     <x>170</x>
-     <y>270</y>
-     <width>151</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-   </property>
-  </widget>
-  <widget class="QListWidget" name="loggerList">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>30</y>
-     <width>151</width>
-     <height>271</height>
-    </rect>
-   </property>
-   <property name="defaultDropAction">
-    <enum>Qt::IgnoreAction</enum>
-   </property>
-   <property name="selectionMode">
-    <enum>QAbstractItemView::MultiSelection</enum>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label">
+  <widget class="QWidget" name="gridLayoutWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>71</width>
-     <height>16</height>
+     <width>321</width>
+     <height>301</height>
     </rect>
    </property>
-   <property name="text">
-    <string>All loggers:</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="mergeComboBox">
-   <property name="geometry">
-    <rect>
-     <x>170</x>
-     <y>30</y>
-     <width>151</width>
-     <height>22</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_2">
-   <property name="geometry">
-    <rect>
-     <x>170</x>
-     <y>10</y>
-     <width>131</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Merge all into:</string>
-   </property>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="1">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>Merge all into:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>40</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="0" column="0">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>All loggers:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="1">
+     <widget class="QDialogButtonBox" name="buttonBox">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="standardButtons">
+       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QComboBox" name="dstComboBox"/>
+    </item>
+    <item row="1" column="0" rowspan="4">
+     <widget class="QListWidget" name="loggerList">
+      <property name="defaultDropAction">
+       <enum>Qt::IgnoreAction</enum>
+      </property>
+      <property name="selectionMode">
+       <enum>QAbstractItemView::MultiSelection</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QCheckBox" name="keepAliveCheckBox">
+      <property name="text">
+       <string>Keep connections alive</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>
@@ -91,12 +95,12 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>280</x>
-     <y>294</y>
+     <x>247</x>
+     <y>303</y>
     </hint>
     <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
+     <x>186</x>
+     <y>248</y>
     </hint>
    </hints>
   </connection>
@@ -107,12 +111,12 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>280</x>
-     <y>300</y>
+     <x>250</x>
+     <y>296</y>
     </hint>
     <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
+     <x>305</x>
+     <y>249</y>
     </hint>
    </hints>
   </connection>

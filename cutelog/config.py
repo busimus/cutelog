@@ -42,7 +42,7 @@ OPTION_SPEC = (
     ('search_wildcard_default',      bool, False),
 
     # Server
-    ('listen_host',  str,  '127.0.0.1'),
+    ('listen_host',  str,  '0.0.0.0'),
     ('listen_port',  int,  19996),
     ('one_tab_mode', bool, False),
 

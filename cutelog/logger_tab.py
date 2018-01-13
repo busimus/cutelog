@@ -352,13 +352,12 @@ class DetailTableModel(QAbstractTableModel):
 
 
 class LoggerTab(*LoggerTabBase):
-    def __init__(self, name, tab_closed_signal, log, loop, main_window, parent_widget):
-        super().__init__()
+    def __init__(self, parent, name, connection, log, loop, main_window):
+        super().__init__(parent)
         self.log = log.getChild(name)
         self.log.debug('Starting a logger named {}'.format(name))
         self.name = name
         self.main_window = main_window
-        self.parent_widget = parent_widget
         self.loop = loop
         self.level_filter = LevelFilter()
         self.level_filter.set_all_pass(False)
@@ -370,7 +369,7 @@ class LoggerTab(*LoggerTabBase):
         self.scroll_max = 0
         self.record_count = 0
         self.monitor_count = 0  # for monitoring
-        self.tab_closed_signal = tab_closed_signal
+        self.connections = [connection]
         self.last_status_update_time = 0
 
         self.search_bar_visible = CONFIG['search_open_default']
@@ -383,7 +382,7 @@ class LoggerTab(*LoggerTabBase):
         self.setupUi()
 
     def setupUi(self):
-        super().setupUi(self.parent_widget)
+        super().setupUi(self)
         self.table_header = LoggerTableHeader(self.loggerTable.horizontalHeader())
         self.record_model = LogRecordModel(self, self.level_filter.levels, self.table_header)
 
@@ -431,15 +430,15 @@ class LoggerTab(*LoggerTabBase):
         header.setContextMenuPolicy(Qt.CustomContextMenu)
         header.customContextMenuRequested.connect(self.open_header_menu)
 
-        self.searchSC = QShortcut('Ctrl+F', self.parent_widget)
+        self.searchSC = QShortcut('Ctrl+F', self)
         self.searchSC.activated.connect(self.toggle_search)
         self.searchSC.setAutoRepeat(False)
 
-        self.searchSC_F3 = QShortcut('F3', self.parent_widget)
+        self.searchSC_F3 = QShortcut('F3', self)
         self.searchSC_F3.activated.connect(self.search_down_or_close)
         self.searchSC_F3.setAutoRepeat(True)
 
-        self.searchSC_Esc = QShortcut('Esc', self.parent_widget)
+        self.searchSC_Esc = QShortcut('Esc', self)
         self.searchSC_Esc.activated.connect(partial(self.set_search_visible, False))
         self.searchSC_Esc.setAutoRepeat(False)
 
@@ -787,9 +786,21 @@ class LoggerTab(*LoggerTabBase):
 
     def closeEvent(self, event=None):
         self.log.debug('Tab close event!')
-        self.tab_closed_signal.set()
+        self.stop_all_connections()
         if self.popped_out:
             self.main_window.close_popped_out_logger(self)
+
+    def add_connection(self, connection):
+        self.log.debug('Adding connection "{}"'.format(connection))
+        self.connections.append(connection)
+
+    def remove_connection(self, connection):
+        self.log.debug('Removing connection "{}"'.format(connection))
+        self.connections.remove(connection)
+
+    def stop_all_connections(self):
+        for conn in self.connections:
+            conn.tab_closed = True
 
     def row_height_changed(self, new_height):
         self.loggerTable.verticalHeader().setDefaultSectionSize(new_height)

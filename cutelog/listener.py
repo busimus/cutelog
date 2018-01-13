@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import struct
 import pickle
@@ -26,18 +25,16 @@ class LogServer(QTcpServer):
         self.host = QHostAddress(self.host)
         self.benchmark = CONFIG['benchmark']
 
-        self.threads = {}  # int(socketDescriptor) -> LogConnection
+        self.threads = []
         self.connections = 0
 
     def start(self):
         self.log.info('Starting the server')
         if self.benchmark:
             self.log.debug('Starting a benchmark connection')
-            tab_closed = asyncio.Event()
-            new_conn = BenchmarkConnection(self, None, "benchmark",
-                                           self.stop_signal, tab_closed, self.log)
-            self.on_connection(new_conn, "benchmark", tab_closed)
-            self.threads[None] = new_conn
+            new_conn = BenchmarkConnection(self, None, "benchmark", self.stop_signal, self.log)
+            self.on_connection(new_conn, "benchmark")
+            self.threads.append(new_conn)
             new_conn.start()
 
         result = self.listen(self.host, self.port)
@@ -52,14 +49,13 @@ class LogServer(QTcpServer):
         self.connections += 1
         name = 'Logger {}'.format(self.connections)
         self.log.info('New connection: "{}"'.format(name))
-        tab_closed = asyncio.Event()
-        new_conn = LogConnection(self, socketDescriptor, name,
-                                 self.stop_signal, tab_closed, self.log)
-        self.on_connection(new_conn, name, tab_closed)
+        new_conn = LogConnection(self, socketDescriptor, name, self.stop_signal, self.log)
+
+        self.on_connection(new_conn, name)
         new_conn.finished.connect(new_conn.deleteLater)
         new_conn.connection_finished.connect(self.cleanup_connection)
         new_conn.start()
-        self.threads[int(socketDescriptor)] = new_conn
+        self.threads.append(new_conn)
 
     def close_server(self, wait=True):
         self.log.debug('Closing the server')
@@ -72,7 +68,7 @@ class LogServer(QTcpServer):
     def wait_connections_stopped(self):
         self.log.debug('Waiting for {} connections threads to stop'.format(len(self.threads)))
         to_wait = self.threads.copy()  # to protect against changes during iteration
-        for thread in to_wait.values():
+        for thread in to_wait:
             try:
                 if not thread.wait(1000):
                     self.log.error('Thread "{}" didn\'t stop in time, terminating'.format(thread))
@@ -82,27 +78,26 @@ class LogServer(QTcpServer):
                 self.log.debug('Thread {} has been deleted already'.format(thread))
         self.log.debug('All connections stopped')
 
-    def cleanup_connection(self, socketDescriptor):
+    def cleanup_connection(self, connection):
         try:
-            del self.threads[socketDescriptor]
+            self.threads.remove(connection)
         except Exception as e:
-            self.log.error('Bad socketDescriptor: {}'.format(socketDescriptor), exc_info=True)
+            self.log.error('Double delete on connection: {}'.format(connection), exc_info=True)
             # import pdb; pdb.set_trace()
 
 
 class LogConnection(QThread):
 
     new_record = pyqtSignal(logging.LogRecord)
-    connection_finished = pyqtSignal(int)
+    connection_finished = pyqtSignal(object)
 
-    def __init__(self, parent, socketDescriptor, name, stop_signal, tab_closed, log):
+    def __init__(self, parent, socketDescriptor, name, stop_signal, log):
         super().__init__(parent)
         self.log = log.getChild(name)
-        # self.parent_object = parent
         self.socketDescriptor = socketDescriptor
         self.name = name
         self.stop_signal = stop_signal
-        self.tab_closed = tab_closed
+        self.tab_closed = False  # used to stop the connection from a "parent" logger
 
     def __repr__(self):
         return "{}(name={}, socketDescriptor={})".format(self.__class__.__name__, self.name,
@@ -120,7 +115,6 @@ class LogConnection(QThread):
             return sock.read(n_bytes)
 
         sock = QTcpSocket(None)
-        # import pdb; pdb.set_trace()
         sock.setSocketDescriptor(self.socketDescriptor)
         sock.waitForConnected()
 
@@ -145,11 +139,11 @@ class LogConnection(QThread):
 
         sock.disconnectFromHost()
         sock.close()
-        self.connection_finished.emit(int(self.socketDescriptor))
+        self.connection_finished.emit(self)
         self.log.debug('Connection "{}" has stopped'.format(self.name))
 
     def need_to_stop(self):
-        return any([self.stop_signal.is_set(), self.tab_closed.is_set()])
+        return any([self.stop_signal.is_set(), self.tab_closed])
 
 
 class BenchmarkConnection(LogConnection):
