@@ -151,7 +151,8 @@ class BenchmarkConnection(LogConnection):
     def run(self):
         test_levels = [(10, 'DEBUG'), (20, 'INFO'), (30, 'WARNING'),
                        (40, 'ERROR'), (50, 'CRITICAL'), (21, 'REQ')]
-        d = {'args': None,  # dummy log item
+        # dummy log item
+        d = {'args': None,
              'created': 0,
              'exc_info': None,
              'exc_text': 'exception test',
@@ -186,3 +187,4 @@ class BenchmarkConnection(LogConnection):
             self.new_record.emit(r)
             c += 1
             time.sleep(CONFIG.benchmark_interval)
+        self.connection_finished.emit(self)

@@ -349,6 +349,7 @@ class MainWindow(*MainWindowBase):
                     conn.new_record.disconnect(src_logger.on_record)
                     conn.connection_finished.disconnect(src_logger.remove_connection)
                     conn.new_record.connect(dst_logger.on_record)
+                    dst_logger.add_connection(conn)
                 src_logger.connections.clear()
             self.destroy_logger(src_logger)
 
