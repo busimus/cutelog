@@ -183,11 +183,14 @@ class MainWindow(*MainWindowBase):
             self.server.start()
             self.server_running = True
             await self.stop_signal.wait()
-            self.server.close_server()
+            self.server.close_server(wait=False)
+
+            # executor is used here because stopping threads can take some time and stall the loop
+            await self.loop.run_in_executor(None, self.server.wait_connections_stopped)
+
             self.server_running = False
             self.log.debug('Run got the stop_signal with reason {}'.format(self.stop_reason))
             if self.stop_reason == 'restart':
-                # await self.wait_server_closed()
                 continue
             elif self.stop_reason == 'pause':
                 await self.start_server_again.wait()

@@ -26,7 +26,7 @@ class LogServer(QTcpServer):
         self.host = QHostAddress(self.host)
         self.benchmark = CONFIG['benchmark']
 
-        self.threads = {}  # socketDescriptor -> LogConnection
+        self.threads = {}  # int(socketDescriptor) -> LogConnection
         self.connections = 0
 
     def start(self):
@@ -61,20 +61,25 @@ class LogServer(QTcpServer):
         new_conn.start()
         self.threads[int(socketDescriptor)] = new_conn
 
-    def close_server(self):
+    def close_server(self, wait=True):
         self.log.debug('Closing the server')
+        self.main_window.set_status('Stopping the server...')
         self.close()
-        self.stop_all_connections()
+        if wait:
+            self.wait_connections_stopped()
+        self.main_window.set_status('Server has stopped')
 
-    def stop_all_connections(self):
-        self.log.debug('Waiting for connection threads to stop')
-        for _, thread in self.threads.items():
-            thread.exit()
-        for _, thread in self.threads.items():
-            if not thread.wait(1000):
-                self.log.error('Thread "{}" didn\'t stop in time, terminating...'.format(thread))
-                thread.terminate()
-                self.log.error('Thread "{}" terminated'.format(thread))
+    def wait_connections_stopped(self):
+        self.log.debug('Waiting for {} connections threads to stop'.format(len(self.threads)))
+        to_wait = self.threads.copy()  # to protect against changes during iteration
+        for thread in to_wait.values():
+            try:
+                if not thread.wait(1000):
+                    self.log.error('Thread "{}" didn\'t stop in time, terminating'.format(thread))
+                    thread.terminate()
+                    self.log.error('Thread "{}" terminated'.format(thread))
+            except RuntimeError:  # happens when thread has been deleted before we got to it
+                self.log.debug('Thread {} has been deleted already'.format(thread))
         self.log.debug('All connections stopped')
 
     def cleanup_connection(self, socketDescriptor):
@@ -98,6 +103,10 @@ class LogConnection(QThread):
         self.name = name
         self.stop_signal = stop_signal
         self.tab_closed = tab_closed
+
+    def __repr__(self):
+        return "{}(name={}, socketDescriptor={})".format(self.__class__.__name__, self.name,
+                                                         self.socketDescriptor)
 
     def run(self):
         self.log.debug('Connection "{}" is starting'.format(self.name))
@@ -133,6 +142,7 @@ class LogConnection(QThread):
             data = pickle.loads(data)
             record = logging.makeLogRecord(data)
             self.new_record.emit(record)
+
         sock.disconnectFromHost()
         sock.close()
         self.connection_finished.emit(int(self.socketDescriptor))

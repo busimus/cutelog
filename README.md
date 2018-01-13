@@ -1,4 +1,5 @@
-# cutelog - GUI for Python's logging module
+# cutelog – GUI for Python's logging module
+[![PyPi](https://img.shields.io/pypi/v/cutelog.svg?style=flat-square)](https://pypi.python.org/pypi/cutelog)
 
 This is a graphical log viewer for Python's standard logging module.
 It can be targeted as a SocketHandler with no additional setup (see [Usage](#usage)).

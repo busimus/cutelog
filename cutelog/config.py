@@ -2,13 +2,10 @@ import logging
 import os
 import sys
 from collections import namedtuple
-from platform import python_version
 
 from pkg_resources import get_distribution, resource_filename
 from PyQt5.QtCore import (QT_VERSION_STR, QCoreApplication, QFile, QObject,
                           QSettings, Qt, pyqtSignal)
-
-# from PyQt5.QtGui import QFont
 
 
 if sys.platform == 'win':
@@ -18,9 +15,6 @@ elif sys.platform == 'darwin':
 else:
     DEFAULT_FONT = 'Sans'
 
-
-# @Future: when the time is right, remove everything related to this mess:
-PY35_COMPAT = python_version().startswith('3.5')
 
 # @Future: when Qt 5.6 becomes standard, remove this:
 QT_VER = QT_VERSION_STR.split('.')
@@ -93,7 +87,6 @@ class Config(QObject):
         self.benchmark_interval = None
 
         self.update_attributes()
-        # self.save_options()
 
     def __getitem__(self, name):
         # self.log.debug('Getting "{}"'.format(name))
@@ -258,16 +251,11 @@ def init_logging():
     log = logging.getLogger('CL')
     term_handler = logging.StreamHandler()
 
-    if PY35_COMPAT:
-        exc = ImportError
-    else:
-        exc = ModuleNotFoundError
-
     try:
         import colorlog
         fmt = colorlog.ColoredFormatter('%(asctime)s %(log_color)s[%(name)12s:%(lineno)3s'
                                         ' %(funcName)18s ]\t%(levelname)-.6s  %(message)s')
-    except exc:
+    except ImportError:
         fmt = logging.Formatter('%(asctime)s [%(name)12s:%(lineno)3s '
                                 '%(funcName)18s ]\t%(levelname)-.6s  %(message)s')
 
