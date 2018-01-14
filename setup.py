@@ -2,14 +2,29 @@
 
 from os.path import dirname, join
 from setuptools import setup
+from setuptools.command.install import install
 
 
-VERSION = '1.1.2'
+VERSION = '1.1.3'
 
 
-# def build_qt_resources():
-#     from PyQt5 import pyrcc_main
-#     pyrcc_main.processResourceFile(['cutelog/styles/dark_theme.qrc'], 'cutelog/resources.py', False)
+def build_qt_resources():
+    print('Compiling resources...')
+    from PyQt5 import pyrcc_main
+    pyrcc_main.processResourceFile(['cutelog/resources/resources.qrc'],
+                                   'cutelog/resources.py', False)
+    print('Resources compiled successfully')
+
+
+class CustomInstall(install):
+    def run(self):
+        try:
+            build_qt_resources()
+        except Exception as e:
+            print('Could not compile the resources.py file due to an exception: "{}"\n'
+                  'Aborting installation.'.format(e))
+            raise
+        install.run(self)
 
 
 setup(
@@ -54,4 +69,5 @@ setup(
     data_files=[('share/applications', ['share/cutelog.desktop']),
                 ('share/pixmaps', ['share/cutelog.png'])],
     zip_safe=False,
+    cmdclass=dict(install=CustomInstall)
 )

@@ -55,16 +55,15 @@ log.info('Hello world!')
 ```
 
 ## Planned features
-* [ ] Presets for colors
 * [ ] Indication that the connection has been closed
+* [ ] Presets for colors
 * [ ] Presets for the logger header
 * [ ] Modify how rows are arranged in the detail table (like the header dialog)
 * [ ] Improve the way existence of an exception is shown
 * [ ] Fix double-search on the last matched result (or indicate that the last result was reached)
-* [ ] Ability to save and load logs
+* [ ] Ability to save and load logs (as text or as full records)
 * [ ] Alarms/notifications triggered by specified messages
 * [ ] Figure out how to search up
-* [ ] Option to merge multiple connections without stopping them
 
 ### Code improvements:
 * [ ] Proper exception handling in critical places

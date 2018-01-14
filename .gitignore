@@ -105,3 +105,4 @@ venv.bak/
 
 Session.vim
 deploy.sh
+cutelog/resources.py
