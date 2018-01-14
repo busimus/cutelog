@@ -1,4 +1,5 @@
 import asyncio
+from functools import partial
 
 from PyQt5 import uic
 from PyQt5.QtCore import Qt, QFile, QTextStream
@@ -30,6 +31,7 @@ class MainWindow(*MainWindowBase):
         self.stop_signal = asyncio.Event()
         self.finished = asyncio.Event()
         self.dark_theme = CONFIG['dark_theme_default']
+        self.single_tab_mode = CONFIG['single_tab_mode_default']
 
         self.loggers_by_name = {}  # name -> LoggerTab
 
@@ -44,34 +46,15 @@ class MainWindow(*MainWindowBase):
 
     def setupUi(self):
         super().setupUi(self)
+        self.setWindowTitle('cutelog')
+
         self.setup_menubar()
+        self.setup_action_triggers()
         self.setup_shortcuts()
 
         self.connectionTabWidget.tabCloseRequested.connect(self.close_tab)
 
-        self.setWindowTitle('cutelog')
-
-        self.actionQuit.triggered.connect(self.shutdown)
-
-        self.actionRenameTab.triggered.connect(self.rename_tab)
-        self.actionCloseTab.triggered.connect(self.close_current_tab)
-
-        self.actionPopOut.triggered.connect(self.pop_out_tab)
-        self.actionPopIn.triggered.connect(self.pop_in_tabs_dialog)
-        self.actionDarkTheme.toggled.connect(self.toggle_dark_theme)
-
-        # self.actionReloadStyle.triggered.connect(self.reload_stylesheet)
-        self.actionRestartServer.triggered.connect(self.restart_server)
-        self.actionStartStopServer.triggered.connect(self.start_or_stop_server)
-
-        self.actionAbout.triggered.connect(self.about_dialog)
-        self.actionSettings.triggered.connect(self.settings_dialog)
-        self.actionMergeTabs.triggered.connect(self.merge_tabs_dialog)
-        self.actionTrimTabRecords.triggered.connect(self.trim_records_dialog)
-        self.actionSetMaxCapacity.triggered.connect(self.max_capacity_dialog)
-
         self.reload_stylesheet()
-
         self.restore_geometry()
 
         self.show()
@@ -83,9 +66,12 @@ class MainWindow(*MainWindowBase):
 
         # File menu
         self.menuFile = self.menubar.addMenu("File")
-        self.actionDarkTheme = self.menuFile.addAction('Dark Theme')
+        self.actionDarkTheme = self.menuFile.addAction('Dark theme')
         self.actionDarkTheme.setCheckable(True)
         self.actionDarkTheme.setChecked(self.dark_theme)
+        self.actionSingleTab = self.menuFile.addAction('Single tab mode')
+        self.actionSingleTab.setCheckable(True)
+        self.actionSingleTab.setChecked(self.single_tab_mode)
         # self.actionReloadStyle = self.menuFile.addAction('Reload style')
         self.actionSettings = self.menuFile.addAction('Settings')
         self.menuFile.addSeparator()
@@ -112,6 +98,27 @@ class MainWindow(*MainWindowBase):
         # Help menu
         self.menuHelp = self.menubar.addMenu("Help")
         self.actionAbout = self.menuHelp.addAction("About cutelog")
+
+    def setup_action_triggers(self):
+        self.actionQuit.triggered.connect(self.shutdown)
+        self.actionSingleTab.triggered.connect(partial(setattr, self, 'single_tab_mode'))
+
+        self.actionRenameTab.triggered.connect(self.rename_tab_dialog)
+        self.actionCloseTab.triggered.connect(self.close_current_tab)
+
+        self.actionPopOut.triggered.connect(self.pop_out_tab)
+        self.actionPopIn.triggered.connect(self.pop_in_tabs_dialog)
+        self.actionDarkTheme.toggled.connect(self.toggle_dark_theme)
+
+        # self.actionReloadStyle.triggered.connect(self.reload_stylesheet)
+        self.actionRestartServer.triggered.connect(self.restart_server)
+        self.actionStartStopServer.triggered.connect(self.start_or_stop_server)
+
+        self.actionAbout.triggered.connect(self.about_dialog)
+        self.actionSettings.triggered.connect(self.settings_dialog)
+        self.actionMergeTabs.triggered.connect(self.merge_tabs_dialog)
+        self.actionTrimTabRecords.triggered.connect(self.trim_records_dialog)
+        self.actionSetMaxCapacity.triggered.connect(self.max_capacity_dialog)
 
     def setup_shortcuts(self):
         self.actionQuit.setShortcut('Ctrl+Q')
@@ -202,9 +209,11 @@ class MainWindow(*MainWindowBase):
 
     def on_connection(self, conn, name):
         self.log.debug('New connection: "{}"'.format(name))
-        one_tab_mode = CONFIG['one_tab_mode'] and len(self.loggers_by_name) > 0
 
-        if one_tab_mode:
+        # self.single_tab_mode is ignored if there are 0 tabs currently
+        single_tab_mode = self.single_tab_mode and len(self.loggers_by_name) > 0
+
+        if single_tab_mode:
             new_logger = list(self.loggers_by_name.values())[0]
             new_logger.add_connection(conn)
         else:
@@ -215,7 +224,7 @@ class MainWindow(*MainWindowBase):
         conn.new_record.connect(new_logger.on_record)
         conn.connection_finished.connect(new_logger.remove_connection)
 
-        if not one_tab_mode:
+        if not single_tab_mode:
             self.connectionTabWidget.addTab(new_logger, name)
             self.loggers_by_name[name] = new_logger
 
@@ -243,19 +252,6 @@ class MainWindow(*MainWindowBase):
         self.stop_reason = 'restart'
         self.stop_signal.set()
 
-    # async def wait_server_closed(self):
-    #     self.log.debug('Waiting for the server to close')
-    #     self.actionRestartServer.setText('Stopping the server...')
-    #     self.actionRestartServer.setEnabled(False)
-    #     try:
-    #         await asyncio.wait_for(self.server.wait_server_closed(), timeout=10)
-    #     except asyncio.TimeoutError as e:
-    #         self.log.error('Waiting for the server to close timed out after 10 seconds')
-    #     else:
-    #         self.log.debug('Waiting for server to close finished')
-    #         self.actionRestartServer.setText('Restart server')
-    #         self.actionRestartServer.setEnabled(True)
-
     def start_or_stop_server(self):
         if self.server_running:
             self.stop_reason = 'pause'
@@ -268,7 +264,7 @@ class MainWindow(*MainWindowBase):
     def set_status(self, string):
         self.statusBar().showMessage(string)
 
-    def rename_tab(self):
+    def rename_tab_dialog(self):
         logger, index = self.current_logger_and_index()
         if not logger:
             return
@@ -276,10 +272,10 @@ class MainWindow(*MainWindowBase):
         d = QInputDialog(self)
         d.setLabelText('Enter the new name for the "{}" tab:'.format(logger.name))
         d.setWindowTitle('Rename the "{}" tab'.format(logger.name))
-        d.textValueSelected.connect(self.change_current_tab_name)
+        d.textValueSelected.connect(self.rename_current_tab)
         d.open()
 
-    def change_current_tab_name(self, new_name):
+    def rename_current_tab(self, new_name):
         logger, index = self.current_logger_and_index()
         if new_name in self.loggers_by_name and new_name != logger.name:
             show_warning_dialog(self, "Rename error",

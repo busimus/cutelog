@@ -28,12 +28,12 @@ else:
 Option = namedtuple('Option', ['name', 'type', 'default'])
 OPTION_SPEC = (
     # Appearance
-    ('dark_theme_default',         bool, False),
-    ('logger_table_font',          str,  DEFAULT_FONT),
-    ('logger_table_font_size',     int,  9),
-    ('text_view_dialog_font',      str,  'Courier New'),
-    ('text_view_dialog_font_size', int,  12),
-    ('logger_row_height',          int,  20),
+    ('dark_theme_default',           bool, False),
+    ('logger_table_font',            str,  DEFAULT_FONT),
+    ('logger_table_font_size',       int,  9),
+    ('text_view_dialog_font',        str,  'Courier New'),
+    ('text_view_dialog_font_size',   int,  12),
+    ('logger_row_height',            int,  20),
 
     # Search
     ('search_open_default',          bool, False),
@@ -42,16 +42,16 @@ OPTION_SPEC = (
     ('search_wildcard_default',      bool, False),
 
     # Server
-    ('listen_host',  str,  '0.0.0.0'),
-    ('listen_port',  int,  19996),
-    ('one_tab_mode', bool, False),
+    ('listen_host',                  str,  '0.0.0.0'),
+    ('listen_port',                  int,  19996),
+    ('single_tab_mode_default',      bool, False),
 
     # Advanced
-    ('console_logging_level', int,   30),
-    ('loop_event_delay',      float, 0.005),
-    ('benchmark',             bool,  False),
-    ('benchmark_interval',    float, 0.0005),
-    ('light_theme_is_native', bool,  False),
+    ('console_logging_level',        int,   30),
+    ('loop_event_delay',             float, 0.005),
+    ('benchmark',                    bool,  False),
+    ('benchmark_interval',           float, 0.0005),
+    ('light_theme_is_native',        bool,  False),
 )
 
 
@@ -95,6 +95,15 @@ class Config(QObject):
             raise Exception('No option with name "{}"'.format(name))
         # self.log.debug('Returning "{}"'.format(value))
         return value
+
+    def __setitem__(self, name, value):
+        # self.log.debug('Setting "{}"'.format(name))
+        if name not in self.options:
+            raise Exception('No option with name "{}"'.format(name))
+        self.options[name] = value
+
+    def set_option(self, name, value):
+        self[name] = value
 
     @staticmethod
     def get_resource_path(name, directory='ui'):

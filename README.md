@@ -2,7 +2,7 @@
 [![PyPi](https://img.shields.io/pypi/v/cutelog.svg?style=flat-square)](https://pypi.python.org/pypi/cutelog)
 
 This is a graphical log viewer for Python's standard logging module.
-It can be targeted as a SocketHandler with no additional setup (see [Usage](#usage)).
+It can be targeted with a SocketHandler with no additional setup (see [Usage](#usage)).
 
 The program is in beta: it's lacking some features and may be unstable, but it works.
 cutelog is cross-platform, although it's mainly written and optimized for Linux.
@@ -45,14 +45,16 @@ $ pip install git+https://github.com/busimus/cutelog.git
 2. Put the following into your code:
 ```python
 import logging
-import logging.handlers
+from logging.handlers import SocketHandler
 
-log = logging.getLogger('MyLogger')
+log = logging.getLogger('Root logger')
 log.setLevel(1)  # to send all messages to cutelog
-socket_handler = logging.handlers.SocketHandler('127.0.0.1', 19996)  # default listening address
+socket_handler = SocketHandler('127.0.0.1', 19996)  # default listening address
 log.addHandler(socket_handler)
 log.info('Hello world!')
 ```
+Afterwards it's recommended to designate different loggers for different parts of your program with `log_2 = log.getChild("Child logger")`.
+This will create "log namespaces" which allow you to filter out messages from various subsystems of your program.
 
 ## Planned features
 * [ ] Indication that the connection has been closed

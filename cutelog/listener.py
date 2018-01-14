@@ -33,6 +33,8 @@ class LogServer(QTcpServer):
         if self.benchmark:
             self.log.debug('Starting a benchmark connection')
             new_conn = BenchmarkConnection(self, None, "benchmark", self.stop_signal, self.log)
+            new_conn.finished.connect(new_conn.deleteLater)
+            new_conn.connection_finished.connect(self.cleanup_connection)
             self.on_connection(new_conn, "benchmark")
             self.threads.append(new_conn)
             new_conn.start()
@@ -100,8 +102,9 @@ class LogConnection(QThread):
         self.tab_closed = False  # used to stop the connection from a "parent" logger
 
     def __repr__(self):
-        return "{}(name={}, socketDescriptor={})".format(self.__class__.__name__, self.name,
-                                                         self.socketDescriptor)
+        # return "{}(name={}, socketDescriptor={})".format(self.__class__.__name__, self.name,
+        #                                                  self.socketDescriptor)
+        return "{}(name={})".format(self.__class__.__name__, self.name)
 
     def run(self):
         self.log.debug('Connection "{}" is starting'.format(self.name))
@@ -188,3 +191,4 @@ class BenchmarkConnection(LogConnection):
             c += 1
             time.sleep(CONFIG.benchmark_interval)
         self.connection_finished.emit(self)
+        self.log.debug('Connection "{}" has stopped'.format(self.name))

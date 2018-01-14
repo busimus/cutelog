@@ -36,10 +36,10 @@ class SettingsDialog(*SettingsDialogBase):
         self.benchmarkCheckBox.setToolTip('Has effect after restarting the server, '
                                           '<b>for testing purposes only</b>.')
 
-        self.oneTabCheckBox.setToolTip("Forces all connections into one tab. "
+        self.singleTabCheckBox.setToolTip("Forces all connections into one tab. "
                                        "Useful for when you're restarting one "
                                        "program very often.")
-        self.oneTabLabel.setBuddy(self.oneTabCheckBox)  # @Hmmm: why doesn't this work?
+        self.singleTabLabel.setBuddy(self.singleTabCheckBox)  # @Hmmm: why doesn't this work?
 
     def load_from_config(self):
         # Appearance page
@@ -61,7 +61,7 @@ class SettingsDialog(*SettingsDialogBase):
         self.listenHostLine.setText(CONFIG['listen_host'])
         self.listenPortLine.setValidator(QIntValidator(0, 65535, self))
         self.listenPortLine.setText(str(CONFIG['listen_port']))
-        self.oneTabCheckBox.setChecked(CONFIG['one_tab_mode'])
+        self.singleTabCheckBox.setChecked(CONFIG['single_tab_mode_default'])
 
         # Advanced page
         self.logLevelLine.setValidator(QIntValidator(0, 1000, self))
@@ -99,7 +99,7 @@ class SettingsDialog(*SettingsDialogBase):
         o['listen_host'] = self.listenHostLine.text()
         o['listen_port'] = int(self.listenPortLine.text())
         o['console_logging_level'] = int(self.logLevelLine.text())
-        o['one_tab_mode'] = self.oneTabCheckBox.isChecked()
+        o['single_tab_mode_default'] = self.singleTabCheckBox.isChecked()
 
         # Advanced
         o['loop_event_delay'] = float(self.loopEventDelayLine.text())

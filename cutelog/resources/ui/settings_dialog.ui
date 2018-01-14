@@ -293,12 +293,12 @@
             </widget>
            </item>
            <item row="2" column="0">
-            <widget class="QLabel" name="oneTabLabel">
+            <widget class="QLabel" name="singleTabLabel">
              <property name="text">
-              <string>One &amp;tab for all connections</string>
+              <string>Single &amp;tab mode by default</string>
              </property>
              <property name="buddy">
-              <cstring>oneTabCheckBox</cstring>
+              <cstring>singleTabCheckBox</cstring>
              </property>
             </widget>
            </item>
@@ -316,7 +316,7 @@
             </spacer>
            </item>
            <item row="2" column="1">
-            <widget class="QCheckBox" name="oneTabCheckBox">
+            <widget class="QCheckBox" name="singleTabCheckBox">
              <property name="text">
               <string/>
              </property>
