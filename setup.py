@@ -5,7 +5,7 @@ from setuptools import setup
 from setuptools.command.install import install
 
 
-VERSION = '1.1.3'
+VERSION = '1.1.4'
 
 
 def build_qt_resources():

@@ -50,6 +50,7 @@ class SettingsDialog(*SettingsDialogBase):
         self.textViewFont.setCurrentFont(QFont(CONFIG['text_view_dialog_font']))
         self.textViewFontSize.setValue(CONFIG['text_view_dialog_font_size'])
         self.loggerTableRowHeight.setValue(CONFIG['logger_row_height'])
+        self.excIndicationComboBox.setCurrentIndex(CONFIG['exception_indication'])
 
         # Search
         self.searchOpenDefaultCheckBox.setChecked(CONFIG['search_open_default'])
@@ -74,9 +75,6 @@ class SettingsDialog(*SettingsDialogBase):
         self.lightThemeNativeCheckBox.setChecked(CONFIG['light_theme_is_native'])
         self.server_restart_needed = False
 
-    def server_options_changed(self):
-        self.server_restart_needed = True
-
     def save_to_config(self):
         o = {}
         # Appearance
@@ -85,6 +83,7 @@ class SettingsDialog(*SettingsDialogBase):
         o['logger_table_font_size'] = self.loggerTableFontSize.value()
         o['text_view_dialog_font'] = self.textViewFont.currentFont().family()
         o['text_view_dialog_font_size'] = self.textViewFontSize.value()
+        o['exception_indication'] = self.excIndicationComboBox.currentIndex()
         new_row_height = self.loggerTableRowHeight.value()
         if new_row_height != CONFIG['logger_row_height']:  # to prevent resizing unnecessarily
             o['logger_row_height'] = new_row_height
@@ -119,6 +118,9 @@ class SettingsDialog(*SettingsDialogBase):
     def reject(self):
         # print('rejecting')
         self.done(0)
+
+    def server_options_changed(self):
+        self.server_restart_needed = True
 
     def display_warning(self):
         m = QMessageBox(self.parent_widget)

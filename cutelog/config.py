@@ -1,3 +1,4 @@
+import enum
 import logging
 import os
 import sys
@@ -24,6 +25,15 @@ else:
     QT55_COMPAT = False
 
 
+# Maybe there should be one common enum with all options instead of
+# one enum for each thing? I guess I'll decide when there will be
+# more than one thing in total.
+class Exc_Indication(enum.IntEnum):
+    RED_BG = 0
+    MSG_ICON = 1
+    ICON_AND_RED_BG = 2
+
+
 # There must be a better way to do this, right?
 Option = namedtuple('Option', ['name', 'type', 'default'])
 OPTION_SPEC = (
@@ -34,6 +44,7 @@ OPTION_SPEC = (
     ('text_view_dialog_font',        str,  'Courier New'),
     ('text_view_dialog_font_size',   int,  12),
     ('logger_row_height',            int,  20),
+    ('exception_indication',         int,  Exc_Indication.RED_BG),
 
     # Search
     ('search_open_default',          bool, False),

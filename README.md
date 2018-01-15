@@ -57,11 +57,9 @@ Afterwards it's recommended to designate different loggers for different parts o
 This will create "log namespaces" which allow you to filter out messages from various subsystems of your program.
 
 ## Planned features
-* [ ] Indication that the connection has been closed
 * [ ] Presets for colors
-* [ ] Presets for the logger header
+* [ ] Presets for the logger header (with option to add columns for extra data)
 * [ ] Modify how rows are arranged in the detail table (like the header dialog)
-* [ ] Improve the way existence of an exception is shown
 * [ ] Fix double-search on the last matched result (or indicate that the last result was reached)
 * [ ] Ability to save and load logs (as text or as full records)
 * [ ] Alarms/notifications triggered by specified messages

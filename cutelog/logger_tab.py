@@ -7,11 +7,11 @@ from functools import partial
 from PyQt5 import uic
 from PyQt5.QtCore import (QAbstractItemModel, QAbstractTableModel, QEvent,
                           QModelIndex, QSortFilterProxyModel, Qt)
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QBrush, QColor, QFont
 from PyQt5.QtWidgets import (QCheckBox, QHBoxLayout, QMenu, QShortcut, QStyle,
                              QTableWidgetItem, QWidget)
 
-from .config import CONFIG
+from .config import CONFIG, Exc_Indication
 from .level_edit_dialog import LevelEditDialog
 from .log_levels import LevelFilter, LogLevel
 from .logger_table_header import HeaderEditDialog, LoggerTableHeader
@@ -152,6 +152,8 @@ class LogRecordModel(QAbstractTableModel):
 
         result = None
         record = self.records[index.row()]
+        if getattr(record, '_cutelog', False):
+            return self.data_internal(index, record, role)
         level = self.levels[record.levelno]
 
         if role == Qt.DisplayRole:
@@ -160,7 +162,10 @@ class LogRecordModel(QAbstractTableModel):
         elif role == Qt.DecorationRole:
             if self.headerData(index.column()) == 'Message':
                 if record.exc_text:
-                    result = self.parent_widget.style().standardIcon(QStyle.SP_BrowserStop)
+                    mode = CONFIG['exception_indication']
+                    should = mode in (Exc_Indication.MSG_ICON, Exc_Indication.ICON_AND_RED_BG)
+                    if should:
+                        result = self.parent_widget.style().standardIcon(QStyle.SP_BrowserStop)
         elif role == Qt.FontRole:
             result = None
             styles = level.styles if not self.dark_theme else level.stylesDark
@@ -181,6 +186,16 @@ class LogRecordModel(QAbstractTableModel):
             else:
                 result = level.fgDark
         elif role == Qt.BackgroundRole:
+            if record.exc_text:
+                mode = CONFIG['exception_indication']
+                should = mode in (Exc_Indication.RED_BG, Exc_Indication.ICON_AND_RED_BG)
+                if should:
+                    if not self.dark_theme:
+                        color = QColor(255, 180, 180)
+                    else:
+                        color = Qt.darkRed
+                    result = QBrush(color, Qt.DiagCrossPattern)
+                    return result
             if not self.dark_theme:
                 result = level.bg
             else:
@@ -189,20 +204,45 @@ class LogRecordModel(QAbstractTableModel):
             result = record.message
         return result
 
+    def data_internal(self, index, record, role):
+        result = None
+        if role == Qt.DisplayRole:
+            if index.column() == self.columnCount(INVALID_INDEX) - 1:  # if last column
+                result = record._cutelog
+            else:
+                column = self.table_header[index.column()]
+                if column.name == 'asctime':
+                    result = record.asctime
+        elif role == Qt.FontRole:
+            result = QFont(CONFIG.logger_table_font, CONFIG.logger_table_font_size)
+        elif role == Qt.ForegroundRole:
+            if not self.dark_theme:
+                result = QColor(Qt.black)
+            else:
+                result = QColor(Qt.white)
+        elif role == Qt.BackgroundRole:
+            if not self.dark_theme:
+                color = QColor(Qt.lightGray)
+            else:
+                color = QColor(Qt.darkGray)
+            result = QBrush(color, Qt.BDiagPattern)
+        return result
+
     def headerData(self, section, orientation=Qt.Horizontal, role=Qt.DisplayRole):
         result = None
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             result = self.table_header[section].title
         return result
 
-    def add_record(self, record):
-        self.trim_if_needed()
-        row = len(self.records)
-        self.beginInsertRows(INVALID_INDEX, row, row)
+    def add_record(self, record, internal=False):
+        if not internal:
+            self.trim_if_needed()
         self.date_formatter.format(record)
+        row = len(self.records)
+
+        self.beginInsertRows(INVALID_INDEX, row, row)
         self.records.append(record)
         self.endInsertRows()
-        return row
 
     def trim_except_last_n(self, n):
         from itertools import islice
@@ -360,7 +400,7 @@ class LoggerTab(*LoggerTabBase):
         self.main_window = main_window
         self.loop = loop
         self.level_filter = LevelFilter()
-        self.level_filter.set_all_pass(False)
+        self.level_filter.set_all_pass(True)
         self.filter_model_enabled = True
         self.detail_model = DetailTableModel()
         self.namespace_tree_model = LogNamespaceTreeModel()
@@ -566,7 +606,13 @@ class LoggerTab(*LoggerTabBase):
         self.register_logger(record.name)
         self.record_count += 1
         self.monitor_count += 1
-        # self.loggerTable.resizeRowsToContents()
+
+    def add_conn_closed_record(self, conn):
+        d = {'_cutelog': 'Connection "{}" closed'.format(conn.name)}
+        record = logging.makeLogRecord(d)
+        self.record_model.add_record(record)
+        if self.autoscroll:
+            self.loggerTable.scrollToBottom()
 
     def get_record(self, index):
         if self.filter_model_enabled:
@@ -797,6 +843,7 @@ class LoggerTab(*LoggerTabBase):
     def remove_connection(self, connection):
         self.log.debug('Removing connection "{}"'.format(connection))
         self.connections.remove(connection)
+        self.add_conn_closed_record(connection)
 
     def stop_all_connections(self):
         for conn in self.connections:
