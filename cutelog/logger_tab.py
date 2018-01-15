@@ -400,7 +400,7 @@ class LoggerTab(*LoggerTabBase):
         self.main_window = main_window
         self.loop = loop
         self.level_filter = LevelFilter()
-        self.level_filter.set_all_pass(True)
+        self.level_filter.set_all_pass(False)
         self.filter_model_enabled = True
         self.detail_model = DetailTableModel()
         self.namespace_tree_model = LogNamespaceTreeModel()

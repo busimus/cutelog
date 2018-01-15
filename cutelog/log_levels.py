@@ -68,7 +68,6 @@ DEFAULT_LEVELS = \
 class LevelFilter:
     def __init__(self):
         self.levels = deepcopy(DEFAULT_LEVELS)
-        self.ranges = []
         self.all_pass = False
 
     def add_level(self, level):
@@ -83,28 +82,15 @@ class LevelFilter:
         except KeyError:
             pass
 
-    def enable_range(self, min, max):
-        self.ranges.append((min, max))
-
-    def disable_range(self, min, max):
-        try:
-            self.ranges.remove((min, max))
-        except KeyError:
-            pass
-
     def set_all_pass(self, value):
         self.all_pass = value
 
     def __contains__(self, levelno):
-        if self.all_pass:
+        if self.all_pass or levelno is None:
             return True
 
         level = self.levels.get(levelno)
         if level and level.enabled:
             return True
-
-        for level_range in self.ranges:
-            if level_range[0] <= levelno <= level_range[1]:
-                return True
 
         return False
