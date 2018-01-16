@@ -308,7 +308,10 @@ class RecordFilter(QSortFilterProxyModel):
                         result = True
                     if path:
                         name = record.name
-                        if name == path:
+                        # name is None for record added by method add_conn_closed_record(). 
+                        if name is None:
+                            result = False
+                        elif name == path:
                             result = True
                         elif not self.selection_includes_children and name == path:
                             result = True
