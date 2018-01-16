@@ -5,7 +5,7 @@ from setuptools import setup
 from setuptools.command.install import install
 
 
-VERSION = '1.1.5'
+VERSION = '1.1.6'
 
 
 def build_qt_resources():
@@ -22,7 +22,7 @@ class CustomInstall(install):
             build_qt_resources()
         except Exception as e:
             print('Could not compile the resources.py file due to an exception: "{}"\n'
-                  'Aborting installation.'.format(e))
+                  'Aborting build.'.format(e))
             raise
         install.run(self)
 
@@ -65,7 +65,7 @@ setup(
     keywords=["log", "logging", "gui", "qt"],
     license="GPLv3",
     long_description=open(join(dirname(__file__), "README.rst")).read(),
-    # package_data={"cutelog": ["styles/*", "ui/*"]}, # everything is in resource.py already
+    # package_data={"cutelog": ["styles/*", "ui/*"]}, # everything is in resources.py already
     data_files=[('share/applications', ['share/cutelog.desktop']),
                 ('share/pixmaps', ['share/cutelog.png'])],
     zip_safe=False,
