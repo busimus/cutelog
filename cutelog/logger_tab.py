@@ -494,7 +494,6 @@ class LoggerTab(*LoggerTabBase):
         self.filterButton.setToolTip('Adheres to the same settings as the search')
 
         # @NextVersion: make this happen
-        self.levelButtonsLayout.setParent(None)
         self.createLevelButton.setVisible(False)
         self.presetsButton.setVisible(False)
 
