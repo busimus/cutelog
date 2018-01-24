@@ -89,7 +89,10 @@
        <item row="4" column="0" colspan="3">
         <widget class="QLabel" name="label_10">
          <property name="text">
-          <string>Font in text edit windows</string>
+          <string>Font in te&amp;xt edit windows</string>
+         </property>
+         <property name="buddy">
+          <cstring>textViewFont</cstring>
          </property>
         </widget>
        </item>
@@ -109,7 +112,10 @@
        <item row="7" column="0" colspan="3">
         <widget class="QLabel" name="label_16">
          <property name="text">
-          <string>Indicate exception with</string>
+          <string>Indicate exce&amp;ption with</string>
+         </property>
+         <property name="buddy">
+          <cstring>excIndicationComboBox</cstring>
          </property>
         </widget>
        </item>
@@ -197,7 +203,10 @@
        <item row="0" column="0" colspan="3">
         <widget class="QLabel" name="label_3">
          <property name="text">
-          <string>Dark theme by default</string>
+          <string>Dark &amp;theme by default</string>
+         </property>
+         <property name="buddy">
+          <cstring>darkThemeDefaultCheckBox</cstring>
          </property>
         </widget>
        </item>
@@ -206,12 +215,18 @@
          <property name="text">
           <string>Logger table row height</string>
          </property>
+         <property name="buddy">
+          <cstring>loggerTableRowHeight</cstring>
+         </property>
         </widget>
        </item>
        <item row="2" column="0" colspan="3">
         <widget class="QLabel" name="label_9">
          <property name="text">
-          <string>Font in logger tables</string>
+          <string>Font in &amp;logger tables</string>
+         </property>
+         <property name="buddy">
+          <cstring>loggerTableFont</cstring>
          </property>
         </widget>
        </item>
@@ -222,14 +237,20 @@
        <item row="3" column="0" colspan="2">
         <widget class="QLabel" name="label_12">
          <property name="text">
-          <string>Case sensitive by default</string>
+          <string>Case sensi&amp;tive by default</string>
+         </property>
+         <property name="buddy">
+          <cstring>searchCaseSensitiveDefaultCheckBox</cstring>
          </property>
         </widget>
        </item>
        <item row="0" column="0" colspan="2">
         <widget class="QLabel" name="label_13">
          <property name="text">
-          <string>Open by default</string>
+          <string>O&amp;pen by default</string>
+         </property>
+         <property name="buddy">
+          <cstring>searchOpenDefaultCheckBox</cstring>
          </property>
         </widget>
        </item>
@@ -262,7 +283,10 @@
        <item row="4" column="0" colspan="2">
         <widget class="QLabel" name="label_11">
          <property name="text">
-          <string>Wildcard by default</string>
+          <string>Wi&amp;ldcard by default</string>
+         </property>
+         <property name="buddy">
+          <cstring>searchWildcardDefaultCheckBox</cstring>
          </property>
         </widget>
        </item>
@@ -295,7 +319,10 @@
        <item row="1" column="0" colspan="2">
         <widget class="QLabel" name="label_5">
          <property name="text">
-          <string>Regex by default</string>
+          <string>Rege&amp;x by default</string>
+         </property>
+         <property name="buddy">
+          <cstring>searchRegexDefaultCheckBox</cstring>
          </property>
         </widget>
        </item>
@@ -319,7 +346,10 @@
        <item row="0" column="0">
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>Server listen address</string>
+          <string>Server &amp;listen address</string>
+         </property>
+         <property name="buddy">
+          <cstring>listenHostLine</cstring>
          </property>
         </widget>
        </item>
@@ -357,7 +387,10 @@
        <item row="1" column="0">
         <widget class="QLabel" name="label_2">
          <property name="text">
-          <string>Server listen port</string>
+          <string>Server listen &amp;port</string>
+         </property>
+         <property name="buddy">
+          <cstring>listenPortLine</cstring>
          </property>
         </widget>
        </item>
@@ -388,7 +421,10 @@
        <item row="1" column="0">
         <widget class="QLabel" name="label_6">
          <property name="text">
-          <string>Console logging level</string>
+          <string>Console &amp;logging level</string>
+         </property>
+         <property name="buddy">
+          <cstring>logLevelLine</cstring>
          </property>
         </widget>
        </item>
@@ -403,6 +439,9 @@
         <widget class="QLabel" name="label_8">
          <property name="text">
           <string>Enable benchmark</string>
+         </property>
+         <property name="buddy">
+          <cstring>benchmarkCheckBox</cstring>
          </property>
         </widget>
        </item>
@@ -423,14 +462,20 @@
        <item row="2" column="0">
         <widget class="QLabel" name="label_7">
          <property name="text">
-          <string>Qt event sleep period</string>
+          <string>&amp;Qt event sleep period</string>
+         </property>
+         <property name="buddy">
+          <cstring>loopEventDelayLine</cstring>
          </property>
         </widget>
        </item>
        <item row="4" column="0">
         <widget class="QLabel" name="label_15">
          <property name="text">
-          <string>Benchmark record interval</string>
+          <string>Benchmark record in&amp;terval</string>
+         </property>
+         <property name="buddy">
+          <cstring>benchmarkIntervalLine</cstring>
          </property>
         </widget>
        </item>
@@ -444,7 +489,10 @@
        <item row="5" column="0">
         <widget class="QLabel" name="label_14">
          <property name="text">
-          <string>Light theme is native style</string>
+          <string>Light theme is nati&amp;ve style</string>
+         </property>
+         <property name="buddy">
+          <cstring>lightThemeNativeCheckBox</cstring>
          </property>
         </widget>
        </item>
