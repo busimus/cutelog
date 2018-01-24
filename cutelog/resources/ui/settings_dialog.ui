@@ -378,73 +378,73 @@
      </widget>
      <widget class="QWidget" name="pageAdvanced">
       <layout class="QGridLayout" name="gridLayout_4">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_6">
-         <property name="text">
-          <string>Console logging level</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="logLevelLine">
-         <property name="placeholderText">
-          <string>30</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_7">
-         <property name="text">
-          <string>Qt event sleep period</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
+       <item row="2" column="1">
         <widget class="QLineEdit" name="loopEventDelayLine">
          <property name="placeholderText">
           <string>0.0075</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_8">
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_6">
          <property name="text">
-          <string>Enable benchmark</string>
+          <string>Console logging level</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
-        <widget class="QCheckBox" name="benchmarkCheckBox">
+       <item row="5" column="1">
+        <widget class="QCheckBox" name="lightThemeNativeCheckBox">
          <property name="text">
           <string/>
          </property>
         </widget>
        </item>
        <item row="3" column="0">
+        <widget class="QLabel" name="label_8">
+         <property name="text">
+          <string>Enable benchmark</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="logLevelLine">
+         <property name="placeholderText">
+          <string>30</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QCheckBox" name="benchmarkCheckBox">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>Qt event sleep period</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
         <widget class="QLabel" name="label_15">
          <property name="text">
           <string>Benchmark record interval</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="1">
+       <item row="4" column="1">
         <widget class="QLineEdit" name="benchmarkIntervalLine">
          <property name="placeholderText">
           <string>0.0005</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="0">
+       <item row="5" column="0">
         <widget class="QLabel" name="label_14">
          <property name="text">
           <string>Light theme is native style</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QCheckBox" name="lightThemeNativeCheckBox">
-         <property name="text">
-          <string/>
          </property>
         </widget>
        </item>
@@ -453,25 +453,42 @@
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
         </spacer>
        </item>
       </layout>
-      <zorder>label_6</zorder>
-      <zorder>logLevelLine</zorder>
-      <zorder>label_7</zorder>
-      <zorder>loopEventDelayLine</zorder>
-      <zorder>label_8</zorder>
-      <zorder>benchmarkCheckBox</zorder>
-      <zorder>label_15</zorder>
-      <zorder>benchmarkIntervalLine</zorder>
-      <zorder>label_14</zorder>
-      <zorder>verticalSpacer_4</zorder>
-      <zorder>lightThemeNativeCheckBox</zorder>
      </widget>
     </widget>
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>listWidget</tabstop>
+  <tabstop>darkThemeDefaultCheckBox</tabstop>
+  <tabstop>loggerTableFont</tabstop>
+  <tabstop>loggerTableFontSize</tabstop>
+  <tabstop>textViewFont</tabstop>
+  <tabstop>textViewFontSize</tabstop>
+  <tabstop>loggerTableRowHeight</tabstop>
+  <tabstop>excIndicationComboBox</tabstop>
+  <tabstop>searchOpenDefaultCheckBox</tabstop>
+  <tabstop>searchRegexDefaultCheckBox</tabstop>
+  <tabstop>searchCaseSensitiveDefaultCheckBox</tabstop>
+  <tabstop>searchWildcardDefaultCheckBox</tabstop>
+  <tabstop>listenHostLine</tabstop>
+  <tabstop>listenPortLine</tabstop>
+  <tabstop>singleTabCheckBox</tabstop>
+  <tabstop>logLevelLine</tabstop>
+  <tabstop>loopEventDelayLine</tabstop>
+  <tabstop>benchmarkCheckBox</tabstop>
+  <tabstop>benchmarkIntervalLine</tabstop>
+  <tabstop>lightThemeNativeCheckBox</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
@@ -481,8 +498,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>229</x>
-     <y>353</y>
+     <x>235</x>
+     <y>253</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -497,8 +514,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>297</x>
-     <y>359</y>
+     <x>303</x>
+     <y>253</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
@@ -545,8 +562,8 @@
    <slot>server_options_changed()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>276</x>
-     <y>34</y>
+     <x>585</x>
+     <y>45</y>
     </hint>
     <hint type="destinationlabel">
      <x>296</x>
