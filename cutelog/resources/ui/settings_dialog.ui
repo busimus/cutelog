@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>260</height>
+    <width>614</width>
+    <height>392</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -73,53 +73,40 @@
      </property>
      <widget class="QWidget" name="pageAppearance">
       <layout class="QGridLayout" name="gridLayout">
-       <item row="2" column="4" colspan="2">
-        <widget class="QSpinBox" name="loggerTableFontSize">
+       <property name="verticalSpacing">
+        <number>10</number>
+       </property>
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Lo&amp;gger table row height</string>
+         </property>
+         <property name="buddy">
+          <cstring>loggerTableRowHeight</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QFontComboBox" name="loggerTableFont">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>1</horstretch>
+           <horstretch>5</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimum">
-          <number>1</number>
-         </property>
         </widget>
        </item>
-       <item row="4" column="0" colspan="3">
-        <widget class="QLabel" name="label_10">
-         <property name="text">
-          <string>Font in te&amp;xt edit windows</string>
-         </property>
-         <property name="buddy">
-          <cstring>textViewFont</cstring>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="0" colspan="6">
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="7" column="0" colspan="3">
+       <item row="6" column="0">
         <widget class="QLabel" name="label_16">
          <property name="text">
-          <string>Indicate exce&amp;ption with</string>
+          <string>Indica&amp;te exception with</string>
          </property>
          <property name="buddy">
           <cstring>excIndicationComboBox</cstring>
          </property>
         </widget>
        </item>
-       <item row="7" column="3" colspan="3">
+       <item row="6" column="2">
         <widget class="QComboBox" name="excIndicationComboBox">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -144,17 +131,30 @@
          </item>
         </widget>
        </item>
-       <item row="6" column="3">
-        <widget class="QSpinBox" name="loggerTableRowHeight">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
+       <item row="12" column="0" colspan="6">
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_10">
+         <property name="text">
+          <string>Font in te&amp;xt edit windows</string>
+         </property>
+         <property name="buddy">
+          <cstring>textViewFont</cstring>
          </property>
         </widget>
        </item>
-       <item row="4" column="3">
+       <item row="4" column="2">
         <widget class="QFontComboBox" name="textViewFont">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -164,30 +164,27 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="4" colspan="2">
-        <widget class="QSpinBox" name="textViewFontSize">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>1</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_9">
+         <property name="text">
+          <string>Font in &amp;logger tables</string>
          </property>
-         <property name="minimum">
-          <number>1</number>
+         <property name="buddy">
+          <cstring>loggerTableFont</cstring>
          </property>
         </widget>
        </item>
-       <item row="2" column="3">
-        <widget class="QFontComboBox" name="loggerTableFont">
+       <item row="5" column="2">
+        <widget class="QSpinBox" name="loggerTableRowHeight">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>5</horstretch>
+           <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
         </widget>
        </item>
-       <item row="0" column="3">
+       <item row="0" column="2">
         <widget class="QCheckBox" name="darkThemeDefaultCheckBox">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -200,7 +197,7 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="0" colspan="3">
+       <item row="0" column="0">
         <widget class="QLabel" name="label_3">
          <property name="text">
           <string>Dark &amp;theme by default</string>
@@ -210,23 +207,29 @@
          </property>
         </widget>
        </item>
-       <item row="5" column="0" rowspan="2" colspan="3">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Logger table row height</string>
+       <item row="2" column="3">
+        <widget class="QSpinBox" name="loggerTableFontSize">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-         <property name="buddy">
-          <cstring>loggerTableRowHeight</cstring>
+         <property name="minimum">
+          <number>1</number>
          </property>
         </widget>
        </item>
-       <item row="2" column="0" colspan="3">
-        <widget class="QLabel" name="label_9">
-         <property name="text">
-          <string>Font in &amp;logger tables</string>
+       <item row="4" column="3">
+        <widget class="QSpinBox" name="textViewFontSize">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-         <property name="buddy">
-          <cstring>loggerTableFont</cstring>
+         <property name="minimum">
+          <number>1</number>
          </property>
         </widget>
        </item>
@@ -234,6 +237,9 @@
      </widget>
      <widget class="QWidget" name="pageSearch">
       <layout class="QGridLayout" name="gridLayout_2">
+       <property name="verticalSpacing">
+        <number>10</number>
+       </property>
        <item row="3" column="0" colspan="2">
         <widget class="QLabel" name="label_12">
          <property name="text">
@@ -247,7 +253,7 @@
        <item row="0" column="0" colspan="2">
         <widget class="QLabel" name="label_13">
          <property name="text">
-          <string>O&amp;pen by default</string>
+          <string>Open by defa&amp;ult</string>
          </property>
          <property name="buddy">
           <cstring>searchOpenDefaultCheckBox</cstring>
@@ -343,6 +349,9 @@
      </widget>
      <widget class="QWidget" name="pageServer">
       <layout class="QGridLayout" name="gridLayout_3">
+       <property name="verticalSpacing">
+        <number>10</number>
+       </property>
        <item row="0" column="0">
         <widget class="QLabel" name="label">
          <property name="text">
@@ -411,6 +420,9 @@
      </widget>
      <widget class="QWidget" name="pageAdvanced">
       <layout class="QGridLayout" name="gridLayout_4">
+       <property name="verticalSpacing">
+        <number>10</number>
+       </property>
        <item row="2" column="1">
         <widget class="QLineEdit" name="loopEventDelayLine">
          <property name="placeholderText">
@@ -489,7 +501,7 @@
        <item row="5" column="0">
         <widget class="QLabel" name="label_14">
          <property name="text">
-          <string>Light theme is nati&amp;ve style</string>
+          <string>Li&amp;ght theme is native style</string>
          </property>
          <property name="buddy">
           <cstring>lightThemeNativeCheckBox</cstring>
@@ -517,13 +529,6 @@
  </widget>
  <tabstops>
   <tabstop>listWidget</tabstop>
-  <tabstop>darkThemeDefaultCheckBox</tabstop>
-  <tabstop>loggerTableFont</tabstop>
-  <tabstop>loggerTableFontSize</tabstop>
-  <tabstop>textViewFont</tabstop>
-  <tabstop>textViewFontSize</tabstop>
-  <tabstop>loggerTableRowHeight</tabstop>
-  <tabstop>excIndicationComboBox</tabstop>
   <tabstop>searchOpenDefaultCheckBox</tabstop>
   <tabstop>searchRegexDefaultCheckBox</tabstop>
   <tabstop>searchCaseSensitiveDefaultCheckBox</tabstop>

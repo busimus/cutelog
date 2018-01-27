@@ -37,6 +37,7 @@ class Exc_Indication(enum.IntEnum):
 # There must be a better way to do this, right?
 Option = namedtuple('Option', ['name', 'type', 'default'])
 OPTION_SPEC = (
+    # SETTINGS WINDOW:
     # Appearance
     ('dark_theme_default',           bool, False),
     ('logger_table_font',            str,  DEFAULT_FONT),
@@ -63,6 +64,10 @@ OPTION_SPEC = (
     ('benchmark',                    bool,  False),
     ('benchmark_interval',           float, 0.0005),
     ('light_theme_is_native',        bool,  False),
+
+    # NON-SETTINGS OPTIONS:
+    # Header
+    ('default_header_preset',        str,  "Default"),
 )
 
 
@@ -115,6 +120,9 @@ class Config(QObject):
 
     def set_option(self, name, value):
         self[name] = value
+        self.qsettings.beginGroup('Configuration')
+        self.qsettings.setValue(name, value)
+        self.qsettings.endGroup()
 
     @staticmethod
     def get_resource_path(name, directory='ui'):
@@ -183,13 +191,14 @@ class Config(QObject):
         self.logger_table_font_size = options.get('logger_table_font_size', self.logger_table_font_size)
         self.set_logging_level(options.get('console_logging_level', ROOT_LOG.level))
 
-    def save_options(self):
+    def save_options(self, sync=False):
         self.log.debug('Saving options')
         self.qsettings.beginGroup('Configuration')
         for option in self.option_spec:
             self.qsettings.setValue(option.name, self.options[option.name])
         self.qsettings.endGroup()
-        self.sync()
+        if sync:  # syncing is probably not necessary here, so the default is False
+            self.sync()
 
     def sync(self):
         self.log.debug('Syncing QSettings')
@@ -241,6 +250,12 @@ class Config(QObject):
         s.endArray()
         s.endGroup()
         return result
+
+    def delete_header_preset(self, name):
+        s = self.qsettings
+        s.beginGroup('Header_Presets')
+        s.remove(name)
+        s.endGroup()
 
     def save_geometry(self, geometry):
         s = self.qsettings

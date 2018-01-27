@@ -123,14 +123,14 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
 
 
 QScrollBar:horizontal {
-    background-color: #2A2929;
+    background-color: #E6E6E6;
     height: 10px;
     margin: 0px 10px 0px 10px;
     border: 1px transparent #2A2929;
 }
 
 QScrollBar::handle:horizontal {
-    background-color: #605F5F;
+    background-color: #B6B6B6;
     min-width: 10px;
 }
 

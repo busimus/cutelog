@@ -37,8 +37,8 @@ class SettingsDialog(*SettingsDialogBase):
                                           '<b>for testing purposes only</b>.')
 
         self.singleTabCheckBox.setToolTip("Forces all connections into one tab. "
-                                       "Useful for when you're restarting one "
-                                       "program very often.")
+                                          "Useful for when you're restarting one "
+                                          "program very often.")
         self.singleTabLabel.setBuddy(self.singleTabCheckBox)  # @Hmmm: why doesn't this work?
 
     def load_from_config(self):
@@ -108,7 +108,6 @@ class SettingsDialog(*SettingsDialogBase):
         CONFIG.update_options(o)
 
     def accept(self):
-        # print('accepting')
         self.save_to_config()
         if self.server_restart_needed:
             show_info_dialog(self.parent_widget, 'Warning',
@@ -116,7 +115,6 @@ class SettingsDialog(*SettingsDialogBase):
         self.done(0)
 
     def reject(self):
-        # print('rejecting')
         self.done(0)
 
     def server_options_changed(self):

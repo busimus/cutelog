@@ -131,8 +131,7 @@ class LogRecordModel(QAbstractTableModel):
         super().__init__(parent)
         self.parent_widget = parent
         self.levels = levels
-        # maxlen isn't needed here, because of how on_record has to handle max_capacity
-        self.records = deque(maxlen=max_capacity if max_capacity > 0 else None)
+        self.records = deque()
         self.font = parent.font()
         self.date_formatter = logging.Formatter('%(asctime)s')  # to format unix timestamp as a date
         self.dark_theme = False
@@ -158,7 +157,7 @@ class LogRecordModel(QAbstractTableModel):
 
         if role == Qt.DisplayRole:
             column = self.table_header[index.column()]
-            result = getattr(record, column.name)
+            result = getattr(record, column.name, None)
         elif role == Qt.DecorationRole:
             if self.headerData(index.column()) == 'Message':
                 if record.exc_text:
@@ -308,14 +307,14 @@ class RecordFilter(QSortFilterProxyModel):
                         result = True
                     if path:
                         name = record.name
-                        # name is None for record added by method add_conn_closed_record(). 
+                        # name is None for record added by method add_conn_closed_record().
                         if name is None:
                             result = False
                         elif name == path:
                             result = True
                         elif not self.selection_includes_children and name == path:
                             result = True
-                        elif self.selection_includes_children and name.startswith('{}.'.format(path)):
+                        elif self.selection_includes_children and name.startswith(path + '.'):
                             result = True
                         else:
                             result = False
@@ -718,21 +717,16 @@ class LoggerTab(*LoggerTabBase):
         menu.popup(self.table_header_view.viewport().mapToGlobal(position))
 
     def open_header_dialog(self):
-        d = HeaderEditDialog(self.main_window, self.table_header.columns)
+        d = HeaderEditDialog(self.main_window, self.table_header)
         d.header_changed.connect(self.header_changed)
         d.setWindowTitle('Header editor')
         d.open()
 
-    def header_changed(self, action, data):
-        if action == 'rearrange':
-            self.table_header.replace_columns(data)
-        elif action == 'load':
-            loaded = CONFIG.load_columns_preset(data)
-            self.table_header.replace_columns(loaded)
-        elif action == 'save':
-            CONFIG.save_columns_preset(data, self)
-        elif action == 'save new':
-            pass
+    def header_changed(self, preset_name, set_as_default, columns):
+        self.table_header.preset_name = preset_name
+        if set_as_default:
+            CONFIG.set_option('default_header_preset', preset_name)
+        self.table_header.replace_columns(columns)
         self.set_columns_sizes()
 
     def merge_with_records(self, new_records):

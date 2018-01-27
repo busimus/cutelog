@@ -174,7 +174,8 @@ class BenchmarkConnection(LogConnection):
              'relativeCreated': 4951865.670204163,
              'stack_info': None,
              'thread': 140062538003776,
-             'threadName': 'MainThread'}
+             'threadName': 'MainThread',
+             'extra_column': 'hey there'}
         c = 0
         while True:
             if self.need_to_stop():
