@@ -5,14 +5,14 @@ from setuptools import setup
 from setuptools.command.install import install
 
 
-VERSION = '1.1.7'
+VERSION = '1.1.8'
 
 
 def build_qt_resources():
     print('Compiling resources...')
     from PyQt5 import pyrcc_main
     pyrcc_main.processResourceFile(['cutelog/resources/resources.qrc'],
-                                   'cutelog/resources.py', False)
+                                    'cutelog/resources.py', False)
     print('Resources compiled successfully')
 
 

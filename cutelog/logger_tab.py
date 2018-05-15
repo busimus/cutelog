@@ -305,6 +305,7 @@ class RecordFilter(QSortFilterProxyModel):
                     path = tindex.internalPointer().path
                     if path == '':
                         result = True
+                        break
                     if path:
                         name = record.name
                         # name is None for record added by method add_conn_closed_record().
@@ -312,10 +313,13 @@ class RecordFilter(QSortFilterProxyModel):
                             result = False
                         elif name == path:
                             result = True
+                            break
                         elif not self.selection_includes_children and name == path:
                             result = True
+                            break
                         elif self.selection_includes_children and name.startswith(path + '.'):
                             result = True
+                            break
                         else:
                             result = False
         if result and self.search_filter:
