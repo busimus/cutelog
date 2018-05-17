@@ -5,7 +5,7 @@ from setuptools import setup
 from setuptools.command.install import install
 
 
-VERSION = '1.1.8'
+VERSION = '1.1.9'
 
 
 def build_qt_resources():

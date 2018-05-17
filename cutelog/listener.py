@@ -109,37 +109,48 @@ class LogConnection(QThread):
     def run(self):
         self.log.debug('Connection "{}" is starting'.format(self.name))
 
-        def wait_and_read(n_bytes, wait_ms):
-            "Convinience function that simplifies checking for stop events, etc."
-            if sock.bytesAvailable() == 0:
-                new_data = sock.waitForReadyRead(wait_ms)
-                if not new_data:
-                    return None
-            return sock.read(n_bytes)
+        def wait_and_read(n_bytes):
+            """
+            Convinience function that simplifies reading and checking for stop events, etc.
+            Returns a byte string of length n_bytes or None if socket needs to be closed.
+
+            """
+            data = b""
+            while len(data) < n_bytes:
+                if sock.bytesAvailable() == 0:
+                    new_data = sock.waitForReadyRead(100)  # wait for 100ms between read attempts
+                    if not new_data:
+                        if sock.state() != sock.ConnectedState or self.need_to_stop():
+                            return None
+                        else:
+                            continue
+                new_data = sock.read(n_bytes - len(data))
+                data += new_data
+            return data
 
         sock = QTcpSocket(None)
         sock.setSocketDescriptor(self.socketDescriptor)
         sock.waitForConnected()
 
         while True:
-            if sock.state() != sock.ConnectedState or self.need_to_stop():
-                self.log.debug('Connection "{}" is stopping'.format(self.name))
-                break
-            read_len = wait_and_read(4, 100)
+            read_len = wait_and_read(4)
             if not read_len:
-                continue
+                break
             read_len = struct.unpack(">L", read_len)[0]
 
-            if sock.bytesAvailable() == 0:
-                sock.waitForReadyRead()
-            data = sock.read(read_len)
+            data = wait_and_read(read_len)
             if not data:
-                continue
+                break
 
-            data = pickle.loads(data)
-            record = logging.makeLogRecord(data)
+            try:
+                data = pickle.loads(data)
+                record = logging.makeLogRecord(data)
+            except Exception as e:
+                self.log.error('Creating log record failed', exc_info=True)
+                continue
             self.new_record.emit(record)
 
+        self.log.debug('Connection "{}" is stopping'.format(self.name))
         sock.disconnectFromHost()
         sock.close()
         self.connection_finished.emit(self)
