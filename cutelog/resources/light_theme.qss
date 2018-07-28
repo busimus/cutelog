@@ -213,6 +213,10 @@ QMenu::item:selected {
     border: 1px solid transparent;
 }
 
+QMenu::item:disabled {
+    color: #777777;
+}
+
 QMenu::indicator {
     width: 10px;
     height: 10px;
@@ -220,7 +224,21 @@ QMenu::indicator {
 }
 
 QMenu::indicator:non-exclusive:unchecked {
-	border: 1px solid #35353B;
+	border: 1px solid #000000;
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    bottom: 1px;
+    left: 1px;
+}
+
+QMenu::indicator:non-exclusive:disabled {
+	border: 1px solid #777777;
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    bottom: 1px;
+    left: 1px;
 }
 
 QMenu::indicator:non-exclusive:checked {

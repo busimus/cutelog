@@ -5,14 +5,26 @@ from setuptools import setup
 from setuptools.command.install import install
 
 
-VERSION = '1.1.9'
+VERSION = '2.0.0'
 
 
 def build_qt_resources():
     print('Compiling resources...')
-    from PyQt5 import pyrcc_main
+    try:
+        from PyQt5 import pyrcc_main
+    except ImportError as e:
+        raise Exception("Building from source requires PyQt5") from e
     pyrcc_main.processResourceFile(['cutelog/resources/resources.qrc'],
                                     'cutelog/resources.py', False)
+    # Rewrite PyQt5 import statements to qtpy
+    with open('cutelog/resources.py', 'r') as rf:
+        lines = rf.readlines()
+        for i, line in enumerate(lines):
+            if 'import' in line and not line.startswith('\\x'):
+                new_line = line.replace('PyQt5', 'qtpy')
+                lines[i] = new_line
+    with open('cutelog/resources.py', 'w') as wf:
+        wf.writelines(lines)
     print('Resources compiled successfully')
 
 
@@ -37,7 +49,7 @@ setup(
     author_email="busfromrus@gmail.com",
     url="https://github.com/busimus/cutelog/",
 
-    requires=['PyQt5'],
+    requires=['PyQt5', 'QtPy'],
     python_requires=">=3.5",
 
     classifiers=[
@@ -45,7 +57,6 @@ setup(
         "Environment :: X11 Applications :: Qt",
         "Environment :: MacOS X :: Cocoa",
         "Environment :: Win32 (MS Windows)",
-        "Framework :: AsyncIO",
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",

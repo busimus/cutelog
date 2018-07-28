@@ -1,26 +1,32 @@
+from copy import deepcopy
 from functools import partial
 
-from PyQt5.QtWidgets import (QCheckBox, QColorDialog, QDialog,
-                             QDialogButtonBox, QFormLayout, QGridLayout,
-                             QGroupBox, QLabel, QLineEdit, QPushButton,
-                             QSizePolicy, QSpacerItem)
+from qtpy.QtCore import Signal
+from qtpy.QtGui import QValidator
+from qtpy.QtWidgets import (QCheckBox, QColorDialog, QDialog, QDialogButtonBox,
+                            QFormLayout, QGridLayout, QGroupBox, QLabel,
+                            QLineEdit, QSizePolicy, QSpacerItem)
 
-from .log_levels import DEFAULT_LEVELS, LogLevel
+from .log_levels import DEFAULT_LEVELS, NO_LEVEL, LogLevel
 
 
 class LevelEditDialog(QDialog):
-    def __init__(self, parent, level=None, creating_new_level=False):
+
+    level_changed = Signal(LogLevel)
+
+    def __init__(self, parent, level=None, creating_new_level=False, level_names=set()):
         super().__init__(parent)
 
         if level:
             self.level = level
         else:
-            self.level = level = LogLevel(0, 'NOTSET')
+            self.level = deepcopy(NO_LEVEL)
 
         self.creating_new_level = creating_new_level
+        self.level_names = level_names
 
-        self.load_level()
         self.setupUi()
+        self.load_level(self.level)
         self.update_output()
 
     def setupUi(self):
@@ -28,13 +34,9 @@ class LevelEditDialog(QDialog):
         self.gridLayout = QGridLayout(self)
         self.levelNameLabel = QLabel("Level name", self)
         self.gridLayout.addWidget(self.levelNameLabel, 0, 0)
-        self.levelNumberLabel = QLabel("Level number", self)
-        self.gridLayout.addWidget(self.levelNumberLabel, 0, 1)
 
         self.levelNameLine = QLineEdit(self)
-        self.levelNoLine = QLineEdit(self)
-        self.gridLayout.addWidget(self.levelNameLine, 1, 0)
-        self.gridLayout.addWidget(self.levelNoLine, 1, 1)
+        self.gridLayout.addWidget(self.levelNameLine, 1, 0, 1, 0)
 
         self.groupBox = QGroupBox("Light mode", self)
         self.gridLayout.addWidget(self.groupBox, 2, 0)
@@ -77,11 +79,10 @@ class LevelEditDialog(QDialog):
         self.previewLineDark = QLineEdit(self)
         self.gridLayout.addWidget(self.previewLineDark, 5, 1)
 
-        self.resetButton = QPushButton('Reset')
-        self.gridLayout.addWidget(self.resetButton, 6, 0)
-
-        self.buttonBox = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel, self)
-        self.gridLayout.addWidget(self.buttonBox, 6, 1)
+        buttons = QDialogButtonBox.Reset | QDialogButtonBox.Save | QDialogButtonBox.Cancel
+        self.buttonBox = QDialogButtonBox(buttons, self)
+        self.resetButton = self.buttonBox.button(QDialogButtonBox.Reset)
+        self.gridLayout.addWidget(self.buttonBox, 6, 0, 1, 2)
 
         self.setup_widget_attributes()
         self.setup_widget_connections()
@@ -100,13 +101,12 @@ class LevelEditDialog(QDialog):
         self.resetButton.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
         self.levelNameLine.setText(self.level.levelname)
-        self.levelNoLine.setText(str(self.level.levelno))
-
-        if not self.creating_new_level:
-            self.levelNoLine.setReadOnly(True)
-            self.levelNoLine.setDisabled(True)
-
-        self.set_checkboxes_state()
+        if self.creating_new_level:
+            self.name_validator = LevelNameValidator(self, self.level_names)
+            self.levelNameLine.setValidator(self.name_validator)
+            self.levelNameLine.textChanged.connect(self.level_name_valid)
+        else:
+            self.levelNameLine.setReadOnly(True)
 
     def setup_widget_connections(self):
         self.boldCheckBox.toggled.connect(self.toggle_bold)
@@ -136,8 +136,7 @@ class LevelEditDialog(QDialog):
         self.italicCheckBoxDark.setChecked(self.italicDark)
         self.underlineCheckBoxDark.setChecked(self.underlineDark)
 
-    def load_level(self):
-        level = self.level
+    def load_level(self, level):
         self.bg = level.bg
         self.fg = level.fg
         self.bgDark = level.bgDark
@@ -152,35 +151,32 @@ class LevelEditDialog(QDialog):
         self.underlineDark = 'underline' in level.stylesDark
 
     def reset_level(self):
-        if self.level.levelno in DEFAULT_LEVELS:
-            replacement = DEFAULT_LEVELS[self.level.levelno]
-        else:
-            replacement = LogLevel(0, 'NOTSET')
+        replacement = DEFAULT_LEVELS.get(self.level.levelname)
+        if not replacement:
+            replacement = NO_LEVEL
 
-        self.level.copy_level(replacement)
-        self.load_level()
-        self.set_checkboxes_state()
+        self.load_level(replacement)
         self.update_output()
 
-    def toggle_bold(self, value, dark=False):
+    def toggle_bold(self, enabled, dark=False):
         if not dark:
-            self.bold = value
+            self.bold = enabled
         else:
-            self.boldDark = value
+            self.boldDark = enabled
         self.update_output()
 
-    def toggle_italic(self, value, dark=False):
+    def toggle_italic(self, enabled, dark=False):
         if not dark:
-            self.italic = value
+            self.italic = enabled
         else:
-            self.italicDark = value
+            self.italicDark = enabled
         self.update_output()
 
-    def toggle_underline(self, value, dark=False):
+    def toggle_underline(self, enabled, dark=False):
         if not dark:
-            self.underline = value
+            self.underline = enabled
         else:
-            self.underlineDark = value
+            self.underlineDark = enabled
         self.update_output()
 
     def open_color_dialog(self, attr_name, mouse_event):
@@ -216,10 +212,9 @@ class LevelEditDialog(QDialog):
         self.level.bgDark = self.bgDark
         self.level.fgDark = self.fgDark
 
-        self.level.levelname = self.levelNameLine.text()
-        if self.creating_new_level:
-            self.level.levelno = self.levelNoLine.text()
+        self.level.levelname = self.levelNameLine.text().upper()
 
+        self.level_changed.emit(self.level)
         self.done(0)
 
     def reject(self):
@@ -242,8 +237,10 @@ class LevelEditDialog(QDialog):
         self.bgColorPreview.setStyleSheet('QLineEdit {{background: {} }}'.format(self.bg.name()))
         self.fgColorPreview.setStyleSheet('QLineEdit {{background: {} }}'.format(self.fg.name()))
 
-        self.bgColorPreviewDark.setStyleSheet('QLineEdit {{ background: {} }}'.format(self.bgDark.name()))
-        self.fgColorPreviewDark.setStyleSheet('QLineEdit {{ background: {} }}'.format(self.fgDark.name()))
+        self.bgColorPreviewDark.setStyleSheet('QLineEdit {{ background: {} }}'
+                                              .format(self.bgDark.name()))
+        self.fgColorPreviewDark.setStyleSheet('QLineEdit {{ background: {} }}'
+                                              .format(self.fgDark.name()))
 
         font = self.previewLine.font()
         font.setBold(self.bold)
@@ -256,3 +253,23 @@ class LevelEditDialog(QDialog):
         fontDark.setItalic(self.italicDark)
         fontDark.setUnderline(self.underlineDark)
         self.previewLineDark.setFont(fontDark)
+
+        self.set_checkboxes_state()
+
+    def level_name_valid(self):
+        if self.levelNameLine.hasAcceptableInput():
+            self.buttonBox.button(QDialogButtonBox.Save).setEnabled(True)
+        else:
+            self.buttonBox.button(QDialogButtonBox.Save).setEnabled(False)
+
+
+class LevelNameValidator(QValidator):
+    def __init__(self, parent, level_names):
+        super().__init__(parent)
+        self.level_names = level_names
+
+    def validate(self, levelname, pos):
+        if len(levelname.strip()) == 0 or levelname in self.level_names:
+            return self.Intermediate, levelname, pos
+        else:
+            return self.Acceptable, levelname.upper(), pos

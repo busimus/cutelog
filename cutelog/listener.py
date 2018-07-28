@@ -1,41 +1,41 @@
-import logging
-import struct
+import json
 import pickle
+import struct
 import time
 
-from PyQt5.QtNetwork import QTcpServer, QTcpSocket, QHostAddress
-from PyQt5.QtCore import QThread, pyqtSignal
+from qtpy.QtCore import QThread, Signal
+from qtpy.QtNetwork import QHostAddress, QTcpServer, QTcpSocket
 
+from .config import CONFIG, MSGPACK_SUPPORT, CBOR_SUPPORT
+from .logger_tab import LogRecord
 from .utils import show_critical_dialog
-from .config import CONFIG
 
 
 class LogServer(QTcpServer):
-    def __init__(self, main_window, on_connection, log, stop_signal):
-        super().__init__()
+    def __init__(self, main_window, on_connection, log):
+        super().__init__(main_window)
         self.log = log.getChild('TCP')
 
         self.log.info('Initializing')
 
         self.main_window = main_window
         self.on_connection = on_connection
-        self.stop_signal = stop_signal
 
         self.host, self.port = CONFIG.listen_address
         self.host = QHostAddress(self.host)
         self.benchmark = CONFIG['benchmark']
+        self.conn_count = 0
 
         self.threads = []
-        self.connections = 0
 
     def start(self):
         self.log.info('Starting the server')
         if self.benchmark:
             self.log.debug('Starting a benchmark connection')
-            new_conn = BenchmarkConnection(self, None, "benchmark", self.stop_signal, self.log)
+            new_conn = BenchmarkConnection(self, None, "benchmark", self.log)
             new_conn.finished.connect(new_conn.deleteLater)
             new_conn.connection_finished.connect(self.cleanup_connection)
-            self.on_connection(new_conn, "benchmark")
+            self.on_connection(new_conn, -1)
             self.threads.append(new_conn)
             new_conn.start()
 
@@ -48,70 +48,81 @@ class LogServer(QTcpServer):
             self.main_window.set_status('Server is listening on {}...'.format(address))
 
     def incomingConnection(self, socketDescriptor):
-        self.connections += 1
-        name = 'Logger {}'.format(self.connections)
-        self.log.info('New connection: "{}"'.format(name))
-        new_conn = LogConnection(self, socketDescriptor, name, self.stop_signal, self.log)
+        self.conn_count += 1
+        conn_id = str(self.conn_count)
+        self.log.info('New connection id={}'.format(conn_id))
+        new_conn = LogConnection(self, socketDescriptor, conn_id, self.log)
 
-        self.on_connection(new_conn, name)
+        self.on_connection(new_conn, conn_id)
+        new_conn.setObjectName(conn_id)
         new_conn.finished.connect(new_conn.deleteLater)
         new_conn.connection_finished.connect(self.cleanup_connection)
         new_conn.start()
         self.threads.append(new_conn)
 
-    def close_server(self, wait=True):
+    def close_server(self):
         self.log.debug('Closing the server')
         self.main_window.set_status('Stopping the server...')
         self.close()
-        if wait:
-            self.wait_connections_stopped()
+        for thread in self.threads.copy():
+            thread.requestInterruption()
+        self.wait_connections_stopped()
         self.main_window.set_status('Server has stopped')
 
     def wait_connections_stopped(self):
         self.log.debug('Waiting for {} connections threads to stop'.format(len(self.threads)))
-        to_wait = self.threads.copy()  # to protect against changes during iteration
-        for thread in to_wait:
+        for thread in self.threads.copy():
             try:
-                if not thread.wait(1000):
-                    self.log.error('Thread "{}" didn\'t stop in time, terminating'.format(thread))
-                    thread.terminate()
-                    self.log.error('Thread "{}" terminated'.format(thread))
+                if not thread.wait(1500):
+                    # @Hmm: sometimes wait() complains about QThread waiting on itself
+                    self.log.debug("Thread \"{}\" didn't stop in time, exiting".format(thread))
+                    return
             except RuntimeError:  # happens when thread has been deleted before we got to it
                 self.log.debug('Thread {} has been deleted already'.format(thread))
-        self.log.debug('All connections stopped')
+        self.log.debug('Waiting for connections has stopped')
 
     def cleanup_connection(self, connection):
         try:
             self.threads.remove(connection)
-        except Exception as e:
+        except Exception:
             self.log.error('Double delete on connection: {}'.format(connection), exc_info=True)
-            # import pdb; pdb.set_trace()
+            return
 
 
 class LogConnection(QThread):
 
-    new_record = pyqtSignal(logging.LogRecord)
-    connection_finished = pyqtSignal(object)
+    new_record = Signal(LogRecord)
+    connection_finished = Signal(object)
+    internal_prefix = b"!!cutelog!!"
 
-    def __init__(self, parent, socketDescriptor, name, stop_signal, log):
+    def __init__(self, parent, socketDescriptor, conn_id, log):
         super().__init__(parent)
-        self.log = log.getChild(name)
+        self.log = log.getChild(conn_id)
         self.socketDescriptor = socketDescriptor
-        self.name = name
-        self.stop_signal = stop_signal
+        self.conn_id = conn_id
         self.tab_closed = False  # used to stop the connection from a "parent" logger
+        self.setup_serializers()
 
     def __repr__(self):
-        # return "{}(name={}, socketDescriptor={})".format(self.__class__.__name__, self.name,
-        #                                                  self.socketDescriptor)
-        return "{}(name={})".format(self.__class__.__name__, self.name)
+        return "{}(id={})".format(self.__class__.__name__, self.conn_id)
+
+    def setup_serializers(self):
+        self.serializers = {'pickle': pickle.loads, 'json': json.loads}
+        if MSGPACK_SUPPORT:
+            import msgpack
+            from functools import partial
+            self.serializers['msgpack'] = partial(msgpack.loads, raw=False)
+        if CBOR_SUPPORT:
+            import cbor
+            self.serializers['cbor'] = cbor.loads
+        self.deserialize = self.serializers[CONFIG['default_serialization_format']]
 
     def run(self):
-        self.log.debug('Connection "{}" is starting'.format(self.name))
+        self.log.debug('Connection id={} is starting'.format(self.conn_id))
 
         def wait_and_read(n_bytes):
             """
-            Convinience function that simplifies reading and checking for stop events, etc.
+            Convenience function that simplifies reading and checking for stop events, etc.
             Returns a byte string of length n_bytes or None if socket needs to be closed.
 
             """
@@ -124,7 +135,11 @@ class LogConnection(QThread):
                             return None
                         else:
                             continue
+                if self.need_to_stop():
+                    return None
                 new_data = sock.read(n_bytes - len(data))
+                if type(new_data) != bytes:
+                    new_data = new_data.data()
                 data += new_data
             return data
 
@@ -142,34 +157,65 @@ class LogConnection(QThread):
             if not data:
                 break
 
+            if data.startswith(self.internal_prefix):
+                self.handle_internal_command(data)
+                continue
+
             try:
-                data = pickle.loads(data)
-                record = logging.makeLogRecord(data)
-            except Exception as e:
+                logDict = self.deserialize(data)
+                record = LogRecord(logDict)
+            except Exception:
                 self.log.error('Creating log record failed', exc_info=True)
                 continue
             self.new_record.emit(record)
 
-        self.log.debug('Connection "{}" is stopping'.format(self.name))
+        self.log.debug('Connection id={} is stopping'.format(self.conn_id))
         sock.disconnectFromHost()
         sock.close()
         self.connection_finished.emit(self)
-        self.log.debug('Connection "{}" has stopped'.format(self.name))
+        self.log.debug('Connection id={} has stopped'.format(self.conn_id))
 
     def need_to_stop(self):
-        return any([self.stop_signal.is_set(), self.tab_closed])
+        return any([self.tab_closed, self.isInterruptionRequested()])
+
+    def handle_internal_command(self, data):
+        """
+        Used for managing listener options from non-Python clients.
+        Command data must start with a special prefix (see self.internal_prefix),
+        followed by a command in a key=value format.
+
+        Supported commands:
+            format - changes the serialization format to one specified in
+                     self.serializers[value]. pickle and json are supported out of the box
+                     Example: format=json
+        """
+        try:
+            data = data[len(self.internal_prefix):].decode('utf-8')
+            cmd, value = data.split("=", 1)
+        except Exception:
+            self.log.error('Internal request decoding failed', exc_info=True)
+            return
+        self.log.debug('Handling internal cmd="{}", value="{}"'.format(cmd, value))
+        if cmd == 'format':
+            if value in self.serializers:
+                self.log.debug('Changing serialization format to "{}"'.format(value))
+                self.deserialize = self.serializers[value]
+            else:
+                self.log.error('Serialization format "{}" is not supported'.format(value))
 
 
 class BenchmarkConnection(LogConnection):
 
     def run(self):
+        import random
         test_levels = [(10, 'DEBUG'), (20, 'INFO'), (30, 'WARNING'),
                        (40, 'ERROR'), (50, 'CRITICAL'), (21, 'REQ')]
+        test_names = ['CL', 'CL.Test1', 'CL.Test1.Test2', 'CL.Test3'
+                      'hey', 'hey.hi.hello', 'CL.Test3.Test4.Test5']
         # dummy log item
         d = {'args': None,
              'created': 0,
              'exc_info': None,
-             'exc_text': 'exception test',
              'filename': 'test.py',
              'funcName': 'test_func',
              'levelname': 'DEBUG',
@@ -187,20 +233,51 @@ class BenchmarkConnection(LogConnection):
              'thread': 140062538003776,
              'threadName': 'MainThread',
              'extra_column': 'hey there'}
+        d = {}
         c = 0
         while True:
             if self.need_to_stop():
                 break
-            d['msg'] = "hey {}".format(c)
+            dd = d.copy()
+            dd['msg'] = "msg {}".format(c)
+            dd['name'] = random.choice(test_names)
             t = time.time()
-            d['created'] = t
-            d['msecs'] = t % 1 * 1000
+            dd['created'] = t
             level_index = c % len(test_levels)
-            d['levelno'] = test_levels[level_index][0]
-            d['levelname'] = test_levels[level_index][1]
-            r = logging.makeLogRecord(d)
+            dd['levelname'] = test_levels[level_index][1]
+            if dd['levelname'] == "CRITICAL":
+                dd['exc_text'] = 'exception test'
+
+            for i in range(random.randrange(6)):
+                dd[str(i) + "f"] = random.randrange(256)
+            r = LogRecord(dd)
             self.new_record.emit(r)
             c += 1
             time.sleep(CONFIG.benchmark_interval)
         self.connection_finished.emit(self)
-        self.log.debug('Connection "{}" has stopped'.format(self.name))
+        self.log.debug('Connection id={} has stopped'.format(self.conn_id))
+
+
+class BenchmarkMonitor(QThread):
+    speed_readout = Signal(str)
+
+    def __init__(self, main_window, logger):
+        super().__init__(main_window)
+        self.logger = logger
+
+    def run(self):
+        import time
+        readouts = []
+        while True:
+            if self.isInterruptionRequested():
+                break
+            time.sleep(0.5)
+            readouts.append(self.logger.monitor_count)
+            average = int(sum(readouts) / len(readouts)) * 2
+            status = "{} rows/s, average: {} rows/s".format(self.logger.monitor_count * 2, average)
+            if self.logger.monitor_count == 0:
+                continue
+            self.speed_readout.emit(status)
+            print(status, average)
+            self.logger.monitor_count = 0
+        print('Result:', int(sum(readouts) / len(readouts)) * 2, 'average')

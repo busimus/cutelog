@@ -1,12 +1,8 @@
-from PyQt5 import uic
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtWidgets import QListWidgetItem, QDialogButtonBox
-
-from .config import CONFIG
-
-uif = CONFIG.get_ui_qfile('merge_dialog.ui')
-MergeDialogBase = uic.loadUiType(uif)
-uif.close()
+# from qtpy.uic import loadUi
+from qtpy.QtCore import Qt, Signal
+from qtpy.QtWidgets import (QAbstractItemView, QCheckBox, QComboBox, QDialog,
+                            QDialogButtonBox, QGridLayout, QLabel, QListWidget,
+                            QListWidgetItem, QSizePolicy, QSpacerItem)
 
 
 class LoggerListItem(QListWidgetItem):
@@ -20,10 +16,10 @@ class LoggerListItem(QListWidgetItem):
         return None
 
 
-class MergeDialog(*MergeDialogBase):
+class MergeDialog(QDialog):
 
     # name of src tab, names of dst tabs, whether to keep connections alive or not
-    merge_tabs_signal = pyqtSignal(str, list, bool)
+    merge_tabs_signal = Signal(str, list, bool)
 
     def __init__(self, parent, loggers):
         super().__init__(parent)
@@ -35,7 +31,29 @@ class MergeDialog(*MergeDialogBase):
         self.setupUi()
 
     def setupUi(self):
-        super().setupUi(self)
+        self.resize(340, 320)
+        self.gridLayout = QGridLayout(self)
+        self.dstComboBox = QComboBox(self)
+        self.gridLayout.addWidget(self.dstComboBox, 1, 2, 1, 2)
+        self.buttonBox = QDialogButtonBox(QDialogButtonBox.Cancel | QDialogButtonBox.Ok, self)
+        self.gridLayout.addWidget(self.buttonBox, 5, 0, 1, 4)
+        self.loggerList = QListWidget(self)
+        self.loggerList.setDefaultDropAction(Qt.IgnoreAction)
+        self.loggerList.setSelectionMode(QAbstractItemView.MultiSelection)
+        self.gridLayout.addWidget(self.loggerList, 1, 0, 4, 2)
+        self.keepAliveCheckBox = QCheckBox("Keep connections alive", self)
+        self.keepAliveCheckBox.setChecked(True)
+        self.gridLayout.addWidget(self.keepAliveCheckBox, 2, 2, 1, 2)
+        self.srcsLabel = QLabel("All loggers:", self)
+        self.gridLayout.addWidget(self.srcsLabel, 0, 0, 1, 2)
+        self.dstLabel = QLabel("Merge all into:", self)
+        self.gridLayout.addWidget(self.dstLabel, 0, 2, 1, 2)
+        spacerItem = QSpacerItem(20, 169, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.gridLayout.addItem(spacerItem, 4, 2, 1, 2)
+
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+
         self.loggerList.selectionModel().selectionChanged.connect(self.merge_list_changed)
         self.dstComboBox.currentTextChanged.connect(self.merge_dst_changed)
         self.ok_button = self.buttonBox.button(QDialogButtonBox.Ok)

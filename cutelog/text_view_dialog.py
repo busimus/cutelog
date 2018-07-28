@@ -1,7 +1,7 @@
-from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import (QApplication, QDialog, QHBoxLayout, QLayout,
-                             QPlainTextEdit, QPushButton, QSizePolicy,
-                             QSpacerItem, QVBoxLayout)
+from qtpy.QtGui import QFont
+from qtpy.QtWidgets import (QApplication, QDialog, QHBoxLayout, QLayout,
+                            QPlainTextEdit, QPushButton, QSizePolicy,
+                            QSpacerItem, QVBoxLayout)
 
 from .config import CONFIG
 

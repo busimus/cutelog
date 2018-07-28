@@ -1,23 +1,25 @@
-# cutelog – GUI for Python's logging module
+# cutelog – GUI for logging
 [![PyPi](https://img.shields.io/pypi/v/cutelog.svg?style=flat-square)](https://pypi.python.org/pypi/cutelog)
 
-This is a graphical log viewer for Python's standard logging module.
+This is a graphical log viewer for Python's logging module.
 It can be targeted with a SocketHandler with no additional setup (see [Usage](#usage)).
 
-The program is in beta: it's lacking some features and may be unstable, but it works.
-cutelog is cross-platform, although it's mainly written and optimized for Linux.
+It can also be used from other languages or logging libraries with little effort (see the [Wiki](../../wiki/Creating-a-client-for-cutelog)).
+For example, a Go library [gocutelog](https://github.com/busimus/gocutelog) shows how to enable 
+regular Go logging libraries to connect to cutelog.
 
-This is my first released project, so the code is by no means stellar.
-Feedback and contributions are appreciated!
+This program is in beta, so please report bugs if you encounter them.
 
 ## Features
 * Allows any number of simultaneous connections
-* Fully customizable look of log levels and columns
-* Filtering based on level and name of the logger, as well as filtering by searching
+* Customizable look of log levels and columns, with presets for each
+* Filtering based on level and namespace, as well as filtering by searching
 * Search through all records or only through filtered ones
+* Display extra fields under the message with [Extra mode](../../wiki/Creating-a-client-for-cutelog#extra-mode)
 * View exception tracebacks or messages in a separate window
 * Dark theme (with its own set of colors for levels)
 * Pop tabs out of the window, merge records of multiple tabs into one
+* Save/load records to/from a file in JSON format
 
 ## Screenshots
 Light theme | Dark theme
@@ -30,7 +32,7 @@ Light theme | Dark theme
 ```
 $ pip install cutelog
 ```
-Or install the latest development version from the source:
+Or install the latest development version from the source (requires PyQt5 to build resources):
 
 ```
 $ pip install git+https://github.com/busimus/cutelog.git
@@ -38,7 +40,8 @@ $ pip install git+https://github.com/busimus/cutelog.git
 
 ### Requirements
 * Python 3.5 (or newer)
-* PyQt5 (preferably 5.6 or newer)
+* PyQt5 (preferably 5.6 or newer) or PySide2
+* [QtPy](https://github.com/spyder-ide/qtpy)
 
 ## Usage
 1. Start `cutelog`
@@ -48,7 +51,7 @@ import logging
 from logging.handlers import SocketHandler
 
 log = logging.getLogger('Root logger')
-log.setLevel(1)  # to send all messages to cutelog
+log.setLevel(1)  # to send all records to cutelog
 socket_handler = SocketHandler('127.0.0.1', 19996)  # default listening address
 log.addHandler(socket_handler)
 log.info('Hello world!')
@@ -56,32 +59,13 @@ log.info('Hello world!')
 Afterwards it's recommended to designate different loggers for different parts of your program with `log_2 = log.getChild("Child logger")`.
 This will create "log namespaces" which allow you to filter out messages from various subsystems of your program.
 
-## Planned features
-* [ ] Presets for colors
-* [ ] Modify how rows are arranged in the detail table (like the header dialog)
-* [ ] Fix double-search on the last matched result (or indicate that the last result was reached)
-* [ ] Ability to save and load logs (as text or as full records)
-* [ ] Alarms/notifications triggered by specified messages
-* [ ] Figure out how to search up
-
-### Code improvements:
-* [ ] Proper exception handling in critical places
-* [ ] Message boxes for errors to avoid relying on CLI logging
-* [ ] Ability to ignore resources.py and instead use actual files for quick stylesheet reload, etc.
-
-### Dreams, uncertainties, and low priority improvements:
-* [ ] Rewrite all/most UIs in code instead of using Qt Designer
-* [ ] Switch to [qtawesome](https://github.com/spyder-ide/qtawesome) instead of ion-icons?
-* [ ] Support for custom themes?
-* [ ] Rewrite the server with robust architecture and additional transports and serializers (e.g. ZeroMQ, WebSockets; msgpack)?
-* [ ] Ditch asyncio if/when [curio](https://github.com/dabeaz/curio) takes off?
-* [ ] Or rewrite the whole thing in C++ and make it be a generic logging receiver not just for Python???
-
-
 ## Attributions
 Free software used:
-* [PyQt5](https://riverbankcomputing.com/software/pyqt/intro) - GPLv3 License, Copyright (c) 2018 Riverbank Computing Limited <info@riverbankcomputing.com>
-* [ion-icons](https://github.com/ionic-team/ionicons) - MIT License, Copyright (c) 2016 Drifty (http://drifty.com/)
+* Qt via either:
+    * [PyQt5](https://riverbankcomputing.com/software/pyqt/intro) - GPLv3 License, Copyright (c) 2018 Riverbank Computing Limited <info@riverbankcomputing.com>
+    * [PySide2](https://wiki.qt.io/PySide2) - LGPLv3 License, Copyright (C) 2015 The Qt Company Ltd (http://www.qt.io/licensing/)
+* [QtPy](https://github.com/spyder-ide/qtpy) - MIT License, Copyright © 2009–2018 The Spyder Development Team
+* [ion-icons](https://github.com/ionic-team/ionicons) - MIT License, Copyright (c) 2015-present Ionic (http://ionic.io/)
 
 And thanks to [logview](https://pythonhosted.org/logview/) by Vinay Sajip for UI inspiration.
 

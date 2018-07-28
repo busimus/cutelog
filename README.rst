@@ -11,9 +11,6 @@ It can be targeted with a SocketHandler with no additional setup (see Usage_).
 The program is in beta: it's lacking some features and may be unstable, but it works.
 cutelog is cross-platform, although it's mainly written and optimized for Linux.
 
-This is my first released project, so the code is by no means stellar.
-Feedback and contributions are appreciated!
-
 Features
 ========
 * Allows any number of simultaneous connections
@@ -39,7 +36,8 @@ Or install the latest development version from the source::
 Requirements
 ------------
 * Python 3.5 (or newer)
-* PyQt5 (preferably 5.6 or newer)
+* PyQt5 (preferably 5.6 or newer) or PySide2
+* QtPy
 
 Usage
 =====

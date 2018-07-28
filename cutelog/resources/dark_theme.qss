@@ -204,6 +204,10 @@ QMenu::item {
     border: 1px solid transparent;
 }
 
+QMenu::item:disabled {
+    color: #777777;
+}
+
 QMenu::item:selected {
     padding: 2px 20px 2px 20px;
     border: 1px solid transparent;
@@ -216,21 +220,36 @@ QMenu::indicator {
 }
 
 QMenu::indicator:non-exclusive:unchecked {
-	border: 1px solid #5A5A5F;
-}
-
-QMenu::indicator:non-exclusive:checked {
-    image: url(:/dark_theme/icons/check);
-	border: 1px solid #5A5A5F;
+	border: 1px solid #8A8A8F;
     position: absolute;
     top: 1px;
     right: 1px;
     bottom: 1px;
     left: 1px;
 }
+
+QMenu::indicator:non-exclusive:disabled {
+	border: 1px solid #777777;
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    bottom: 1px;
+    left: 1px;
+}
+
+QMenu::indicator:non-exclusive:checked {
+    image: url(:/dark_theme/icons/check);
+	border: 1px solid #8A8A8F;
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    bottom: 1px;
+    left: 1px;
+}
+
 QMenu::separator {
     height: 1px;
-    background-color: #363636;
+    background-color: #636363;
     color: white;
     padding-left: 4px;
     margin-left: 10px;

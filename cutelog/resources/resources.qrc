@@ -24,10 +24,8 @@
   </qresource>
   <qresource prefix="/ui">
       <file alias="logger.ui">ui/logger.ui</file>
-      <file alias="main_window.ui">ui/main_window.ui</file>
       <file alias="about_dialog.ui">ui/about_dialog.ui</file>
       <file alias="settings_dialog.ui">ui/settings_dialog.ui</file>
-      <file alias="merge_dialog.ui">ui/merge_dialog.ui</file>
   </qresource>
 </RCC>
 

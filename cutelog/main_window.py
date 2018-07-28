@@ -1,58 +1,58 @@
-import asyncio
-from functools import partial
+from qtpy.QtCore import QFile, Qt, QTextStream
+from qtpy.QtWidgets import (QFileDialog, QInputDialog, QMainWindow, QMenuBar,
+                            QStatusBar, QTabWidget)
 
-from PyQt5 import uic
-from PyQt5.QtCore import Qt, QFile, QTextStream
-from PyQt5.QtWidgets import QInputDialog, QMenuBar
-
-from .listener import LogServer
-from .logger_tab import LoggerTab
-from .settings_dialog import SettingsDialog
 from .about_dialog import AboutDialog
+from .config import CONFIG
+from .listener import LogServer
+from .logger_tab import LoggerTab, LogRecord
 from .merge_dialog import MergeDialog
 from .pop_in_dialog import PopInDialog
-from .utils import show_warning_dialog, center_widget_on_screen
-from .config import CONFIG
+from .settings_dialog import SettingsDialog
+from .utils import (center_widget_on_screen, show_critical_dialog,
+                    show_warning_dialog)
 
 
-uif = CONFIG.get_ui_qfile('main_window.ui')
-MainWindowBase = uic.loadUiType(uif)
-uif.close()
+class MainWindow(QMainWindow):
 
-
-class MainWindow(*MainWindowBase):
-
-    def __init__(self, loop, log, app):
-        self.loop = loop
+    def __init__(self, log, app):
         self.log = log.getChild('Main')
         self.app = app
         super().__init__()
 
-        self.stop_signal = asyncio.Event()
-        self.finished = asyncio.Event()
         self.dark_theme = CONFIG['dark_theme_default']
         self.single_tab_mode = CONFIG['single_tab_mode_default']
 
         self.loggers_by_name = {}  # name -> LoggerTab
+        self.popped_out_loggers = {}
 
-        # used for starting/stopping the server
         self.server_running = False
-        self.start_server_again = asyncio.Event()
-        self.stop_reason = None
+        self.shutting_down = False
 
         self.setupUi()
-
-        self.loop.create_task(self.run())
+        self.start_server()
+        # self.load_records('/home/bus/4krecords.log')
+        # self.load_records('/home/bus/busocket_records.log')
 
     def setupUi(self):
-        super().setupUi(self)
+        self.resize(800, 600)
         self.setWindowTitle('cutelog')
+
+        self.loggerTabWidget = QTabWidget(self)
+        self.loggerTabWidget.setTabsClosable(True)
+        self.loggerTabWidget.setMovable(True)
+        self.loggerTabWidget.setTabBarAutoHide(True)
+        self.loggerTabWidget.currentChanged.connect(self.change_actions_state)
+        self.setCentralWidget(self.loggerTabWidget)
+
+        self.statusbar = QStatusBar(self)
+        self.setStatusBar(self.statusbar)
 
         self.setup_menubar()
         self.setup_action_triggers()
         self.setup_shortcuts()
 
-        self.connectionTabWidget.tabCloseRequested.connect(self.close_tab)
+        self.loggerTabWidget.tabCloseRequested.connect(self.close_tab)
 
         self.reload_stylesheet()
         self.restore_geometry()
@@ -60,12 +60,14 @@ class MainWindow(*MainWindowBase):
         self.show()
 
     def setup_menubar(self):
-        "Copied from pyuic-generated code to gain some control"
         self.menubar = QMenuBar(self)
         self.setMenuBar(self.menubar)
 
         # File menu
         self.menuFile = self.menubar.addMenu("File")
+        self.actionLoadRecords = self.menuFile.addAction('Load records')
+        self.actionSaveRecords = self.menuFile.addAction('Save records')
+        self.menuFile.addSeparator()
         self.actionDarkTheme = self.menuFile.addAction('Dark theme')
         self.actionDarkTheme.setCheckable(True)
         self.actionDarkTheme.setChecked(self.dark_theme)
@@ -77,54 +79,100 @@ class MainWindow(*MainWindowBase):
         self.menuFile.addSeparator()
         self.actionQuit = self.menuFile.addAction('Quit')
 
-        # Edit menu
-        self.menuEdit = self.menubar.addMenu("Edit")
+        # Tab menu
+        self.menuTab = self.menubar.addMenu("Tab")
+        self.actionCloseTab = self.menuTab.addAction('Close')
+        self.actionPopOut = self.menuTab.addAction('Pop out')
+        self.actionRenameTab = self.menuTab.addAction('Rename')
+        self.menuTab.addSeparator()
+        self.actionPopIn = self.menuTab.addAction('Pop in tabs...')
+        self.actionMergeTabs = self.menuTab.addAction('Merge tabs...')
+        self.menuTab.addSeparator()
+        self.actionExtraMode = self.menuTab.addAction('Extra mode')
+        self.actionExtraMode.setCheckable(True)
 
-        self.menuEditTabs = self.menuEdit.addMenu("Tabs")
-        self.actionCloseTab = self.menuEditTabs.addAction('Close')
-        self.actionPopOut = self.menuEditTabs.addAction('Pop out')
-        self.actionRenameTab = self.menuEditTabs.addAction('Rename')
-        self.actionPopIn = self.menuEditTabs.addAction('Pop in tabs...')
-        self.actionMergeTabs = self.menuEditTabs.addAction('Merge tabs...')
+        # Server menu
+        self.menuServer = self.menubar.addMenu("Server")
+        self.actionRestartServer = self.menuServer.addAction('Restart server')
+        self.actionStartStopServer = self.menuServer.addAction('Stop server')
 
-        self.menuEditServer = self.menuEdit.addMenu("Server")
-        self.actionRestartServer = self.menuEditServer.addAction('Restart server')
-        self.actionStartStopServer = self.menuEditServer.addAction('Stop server')
-
-        self.menuEditRecords = self.menuEdit.addMenu("Records")
-        self.actionTrimTabRecords = self.menuEditRecords.addAction('Trim records of this tab')
-        self.actionSetMaxCapacity = self.menuEditRecords.addAction('Set max capacity for this tab')
+        # Records menu
+        self.menuRecords = self.menubar.addMenu("Records")
+        self.actionTrimTabRecords = self.menuRecords.addAction('Trim records')
+        self.actionSetMaxCapacity = self.menuRecords.addAction('Set max capacity')
 
         # Help menu
         self.menuHelp = self.menubar.addMenu("Help")
         self.actionAbout = self.menuHelp.addAction("About cutelog")
 
+        self.change_actions_state()  # to disable all logger actions, since they don't function yet
+
     def setup_action_triggers(self):
-        self.actionQuit.triggered.connect(self.shutdown)
-        self.actionSingleTab.triggered.connect(partial(setattr, self, 'single_tab_mode'))
-
-        self.actionRenameTab.triggered.connect(self.rename_tab_dialog)
-        self.actionCloseTab.triggered.connect(self.close_current_tab)
-
-        self.actionPopOut.triggered.connect(self.pop_out_tab)
-        self.actionPopIn.triggered.connect(self.pop_in_tabs_dialog)
+        # File menu
+        self.actionLoadRecords.triggered.connect(self.open_load_records_dialog)
+        self.actionSaveRecords.triggered.connect(self.open_save_records_dialog)
         self.actionDarkTheme.toggled.connect(self.toggle_dark_theme)
-
+        self.actionSingleTab.triggered.connect(self.set_single_tab_mode)
         # self.actionReloadStyle.triggered.connect(self.reload_stylesheet)
+        self.actionSettings.triggered.connect(self.settings_dialog)
+        self.actionQuit.triggered.connect(self.shutdown)
+
+        # Tab meny
+        self.actionCloseTab.triggered.connect(self.close_current_tab)
+        self.actionPopOut.triggered.connect(self.pop_out_tab)
+        self.actionRenameTab.triggered.connect(self.rename_tab_dialog)
+        self.actionPopIn.triggered.connect(self.pop_in_tabs_dialog)
+        self.actionMergeTabs.triggered.connect(self.merge_tabs_dialog)
+        self.actionExtraMode.triggered.connect(self.toggle_extra_mode)
+
+        # Server menu
         self.actionRestartServer.triggered.connect(self.restart_server)
         self.actionStartStopServer.triggered.connect(self.start_or_stop_server)
 
-        self.actionAbout.triggered.connect(self.about_dialog)
-        self.actionSettings.triggered.connect(self.settings_dialog)
-        self.actionMergeTabs.triggered.connect(self.merge_tabs_dialog)
+        # Records menu
         self.actionTrimTabRecords.triggered.connect(self.trim_records_dialog)
         self.actionSetMaxCapacity.triggered.connect(self.max_capacity_dialog)
+
+        # About menu
+        self.actionAbout.triggered.connect(self.about_dialog)
+
+    def change_actions_state(self, index=None):
+        logger, _ = self.current_logger_and_index()
+        # if there are no loggers in tabs, these actions will be disabled:
+        actions = [self.actionCloseTab, self.actionExtraMode, self.actionPopOut,
+                   self.actionRenameTab, self.actionPopIn,
+                   self.actionTrimTabRecords, self.actionSetMaxCapacity, self.actionSaveRecords]
+
+        if not logger:
+            for action in actions:
+                action.setDisabled(True)
+            self.actionExtraMode.setChecked(False)
+            if len(self.popped_out_loggers) > 0:
+                self.actionPopIn.setDisabled(False)
+        else:
+            for action in actions:
+                action.setDisabled(False)
+            if len(self.loggers_by_name) == self.loggerTabWidget.count():
+                self.actionPopIn.setDisabled(True)
+            self.actionExtraMode.setChecked(logger.extra_mode)
+
+        # if all loggers are popped in
+        if len(self.popped_out_loggers) == 0:
+            self.actionPopIn.setDisabled(True)
+
+        if len(self.loggers_by_name) <= 1:
+            self.actionMergeTabs.setDisabled(True)
+        else:
+            self.actionMergeTabs.setDisabled(False)
+
+    def set_single_tab_mode(self, enabled):
+        self.single_tab_mode = enabled
 
     def setup_shortcuts(self):
         self.actionQuit.setShortcut('Ctrl+Q')
         self.actionDarkTheme.setShortcut('Ctrl+S')
         # self.actionReloadStyle.setShortcut('Ctrl+R')
-        self.actionSettings.setShortcut('Ctrl+A')
+        # self.actionSettings.setShortcut('Ctrl+A')
         self.actionCloseTab.setShortcut('Ctrl+W')
 
     def save_geometry(self):
@@ -146,7 +194,6 @@ class MainWindow(*MainWindowBase):
         d.open()
 
     def reload_stylesheet(self):
-        # @Improvement: make one common function for both/many? styles?
         if self.dark_theme:
             self.reload_dark_style()
         else:
@@ -176,60 +223,74 @@ class MainWindow(*MainWindowBase):
     def set_style_to_stock(self):
         self.app.setStyleSheet('')
 
-    def toggle_dark_theme(self, value):
-        self.dark_theme = value
+    def toggle_dark_theme(self, enabled):
+        self.dark_theme = enabled
         self.reload_stylesheet()
 
         for logger in self.loggers_by_name.values():
-            logger.set_dark_theme(value)
+            logger.set_dark_theme(enabled)
 
-    async def run(self):
-        while True:
-            self.create_server()
-            self.server.start()
-            self.server_running = True
-            await self.stop_signal.wait()
-            self.server.close_server(wait=False)
+    def toggle_extra_mode(self, enabled):
+        logger, _ = self.current_logger_and_index()
+        if not logger:
+            return
+        logger.set_extra_mode(enabled)
 
-            # executor is used here because stopping threads can take some time and stall the loop
-            await self.loop.run_in_executor(None, self.server.wait_connections_stopped)
+    def start_server(self):
+        self.log.debug('Starting the server')
+        self.server = LogServer(self, self.on_connection, self.log)
+        self.server.start()
+        self.server_running = True
+        self.actionStartStopServer.setText('Stop server')
 
+    def stop_server(self):
+        if self.server_running:
+            self.log.debug('Stopping the server')
+            self.server.close_server()
             self.server_running = False
-            self.log.debug('Run got the stop_signal with reason {}'.format(self.stop_reason))
-            if self.stop_reason == 'restart':
-                continue
-            elif self.stop_reason == 'pause':
-                await self.start_server_again.wait()
-                continue
-            else:
-                break
+            del self.server
+            self.server = None
+        self.actionStartStopServer.setText('Start server')
 
-        self.log.info('Main window stopped')
-        self.finished.set()
+    def restart_server(self):
+        self.log.debug('Restarting the server')
+        self.stop_server()
+        self.start_server()
 
-    def on_connection(self, conn, name):
-        self.log.debug('New connection: "{}"'.format(name))
+    def start_or_stop_server(self):
+        if self.server_running:
+            self.stop_server()
+        else:
+            self.start_server()
 
-        # self.single_tab_mode is ignored if there are 0 tabs currently
-        single_tab_mode = self.single_tab_mode and len(self.loggers_by_name) > 0
+    def on_connection(self, conn, conn_id):
+        self.log.debug('New connection id={}'.format(conn_id))
 
-        if single_tab_mode:
+        if self.single_tab_mode and len(self.loggers_by_name) > 0:
             new_logger = list(self.loggers_by_name.values())[0]
             new_logger.add_connection(conn)
         else:
-            name = self.make_logger_name_unique(name)
-            new_logger = LoggerTab(self.connectionTabWidget, name, conn, self.log, self.loop, self)
-            new_logger.set_dark_theme(self.dark_theme)
+            new_logger, index = self.create_logger(conn)
+            self.loggerTabWidget.setCurrentIndex(index)
 
         conn.new_record.connect(new_logger.on_record)
         conn.connection_finished.connect(new_logger.remove_connection)
 
-        if not single_tab_mode:
-            self.connectionTabWidget.addTab(new_logger, name)
-            self.loggers_by_name[name] = new_logger
+        if self.server.benchmark and conn_id == -1:
+            from .listener import BenchmarkMonitor
+            bm = BenchmarkMonitor(self, new_logger)
+            bm.speed_readout.connect(self.set_status)
+            conn.connection_finished.connect(bm.requestInterruption)
+            self.server.threads.append(bm)
+            bm.start()
 
-        if self.server.benchmark and name == 'benchmark':
-            self.loop.create_task(new_logger.monitor())
+    def create_logger(self, conn, name=None):
+        name = self.make_logger_name_unique("Logger" if name is None else name)
+        new_logger = LoggerTab(self.loggerTabWidget, name, conn, self.log, self)
+        new_logger.set_dark_theme(self.dark_theme)
+        self.loggers_by_name[name] = new_logger
+        index = self.loggerTabWidget.addTab(new_logger, name)
+        return new_logger, index
 
     def make_logger_name_unique(self, name):
         name_f = "{} {{}}".format(name)
@@ -239,30 +300,8 @@ class MainWindow(*MainWindowBase):
             c += 1
         return name
 
-    def create_server(self):
-        self.log.debug('Creating the server')
-        self.stop_reason = None
-        self.stop_signal = asyncio.Event()  # putting .clear() here has some async weirdness
-        self.start_server_again = asyncio.Event()
-        self.server = LogServer(self, self.on_connection, self.log, self.stop_signal)
-
-    def restart_server(self):
-        "Stops the server, and run() creates and starts again it automatically"
-        self.log.debug('Restarting the server')
-        self.stop_reason = 'restart'
-        self.stop_signal.set()
-
-    def start_or_stop_server(self):
-        if self.server_running:
-            self.stop_reason = 'pause'
-            self.stop_signal.set()
-            self.actionStartStopServer.setText('Start server')
-        else:
-            self.start_server_again.set()
-            self.actionStartStopServer.setText('Stop server')
-
-    def set_status(self, string):
-        self.statusBar().showMessage(string)
+    def set_status(self, string, timeout=3000):
+        self.statusBar().showMessage(string, timeout)
 
     def rename_tab_dialog(self):
         logger, index = self.current_logger_and_index()
@@ -286,7 +325,7 @@ class MainWindow(*MainWindowBase):
         logger.name = new_name
         self.loggers_by_name[new_name] = logger
         logger.log.name = '.'.join(logger.log.name.split('.')[:-1]) + '.{}'.format(new_name)
-        self.connectionTabWidget.setTabText(index, new_name)
+        self.loggerTabWidget.setTabText(index, new_name)
 
     def trim_records_dialog(self):
         logger, index = self.current_logger_and_index()
@@ -357,26 +396,30 @@ class MainWindow(*MainWindowBase):
 
     def close_tab(self, index):
         self.log.debug("Tab close requested: {}".format(index))
-        logger = self.connectionTabWidget.widget(index)
-        self.connectionTabWidget.removeTab(index)
+        logger = self.loggerTabWidget.widget(index)
+        self.loggerTabWidget.removeTab(index)
+        self.log.debug(logger.name)
         self.destroy_logger(logger)
 
     def destroy_logger(self, logger):
-        logger.setParent(None)
-        logger.stop_all_connections()
         del self.loggers_by_name[logger.name]
+        logger.setParent(None)
+        logger.destroy()
         del logger
 
     def close_popped_out_logger(self, logger):
         del self.loggers_by_name[logger.name]
+        del self.popped_out_loggers[logger.name]
         del logger
+        if len(self.popped_out_loggers):
+            self.actionPopIn.setDisabled(True)
 
     def current_logger_and_index(self):
-        index = self.connectionTabWidget.currentIndex()
+        index = self.loggerTabWidget.currentIndex()
         if index == -1:
             return None, None
 
-        logger = self.connectionTabWidget.widget(index)
+        logger = self.loggerTabWidget.widget(index)
         return logger, index
 
     def pop_out_tab(self):
@@ -388,8 +431,9 @@ class MainWindow(*MainWindowBase):
         logger.destroyed.connect(logger.closeEvent)
         logger.setAttribute(Qt.WA_DeleteOnClose, True)
         logger.setWindowFlags(Qt.Window)
-        logger.setWindowTitle('cutelog: "{}"'.format(self.connectionTabWidget.tabText(index)))
-        self.connectionTabWidget.removeTab(index)
+        logger.setWindowTitle('cutelog: "{}"'.format(self.loggerTabWidget.tabText(index)))
+        self.popped_out_loggers[logger.name] = logger
+        self.loggerTabWidget.removeTab(index)
         logger.popped_out = True
         logger.show()
         center_widget_on_screen(logger)
@@ -412,7 +456,94 @@ class MainWindow(*MainWindowBase):
         logger.destroyed.disconnect(logger.closeEvent)
         logger.setWindowTitle(logger.name)
         logger.popped_out = False
-        self.connectionTabWidget.addTab(logger, logger.windowTitle())
+        del self.popped_out_loggers[logger.name]
+        index = self.loggerTabWidget.addTab(logger, logger.windowTitle())
+        self.loggerTabWidget.setCurrentIndex(index)
+
+    def open_load_records_dialog(self):
+        d = QFileDialog(self)
+        d.setFileMode(QFileDialog.ExistingFile)
+        d.fileSelected.connect(self.load_records)
+        d.setWindowTitle('Load records from...')
+        d.open()
+
+    def load_records(self, load_path):
+        import json
+        from os import path
+
+        class RecordDecoder(json.JSONDecoder):
+            def __init__(self, *args, **kwargs):
+                json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
+
+            def object_hook(self, obj):
+                if '_created' in obj:
+                    obj['created'] = obj['_created']
+                    del obj['_created']
+                    record = LogRecord(obj)
+                    del record._logDict['created']
+                else:
+                    record = LogRecord(obj)
+                return record
+
+        name = path.basename(load_path)
+        index = None
+
+        try:
+            with open(load_path, 'r') as f:
+                records = json.load(f, cls=RecordDecoder)
+                new_logger, index = self.create_logger(None, name)
+                new_logger.merge_with_records(records)
+                self.loggerTabWidget.setCurrentIndex(index)
+            self.set_status('Records have been loaded into "{}" tab'.format(new_logger.name))
+        except Exception as e:
+            if index:
+                self.close_tab(index)
+            text = "Error while loading records: \n{}".format(e)
+            self.log.error(text, exc_info=True)
+            show_critical_dialog(self, "Couldn't load records", text)
+
+    def open_save_records_dialog(self):
+        from functools import partial
+        logger, _ = self.current_logger_and_index()
+        if not logger:
+            return
+
+        d = QFileDialog(self)
+        d.selectFile(logger.name + '.log')
+        d.setFileMode(QFileDialog.AnyFile)
+        d.fileSelected.connect(partial(self.save_records, logger))
+        d.setWindowTitle('Save records of "{}" tab to...'.format(logger.name))
+        d.open()
+
+    def save_records(self, logger, path):
+        import json
+
+        # needed because a deque is not serializable
+        class RecordList(list):
+            def __init__(self, records):
+                self.records = records
+
+            def __len__(self):
+                return len(self.records)
+
+            def __iter__(self):
+                for record in self.records:
+                    d = record._logDict
+                    if not d.get('created', False) and not d.get('time', False):
+                        d['_created'] = record.created
+                    yield d
+
+        try:
+            records = logger.record_model.records
+            record_list = RecordList(records)
+            with open(path, 'w') as f:
+                json.dump(record_list, f, indent=2)
+            self.set_status('Records have been saved to "{}"'.format(path))
+
+        except Exception as e:
+            text = "Error while saving records: \n{}".format(e)
+            self.log.error(text, exc_info=True)
+            show_critical_dialog(self, "Couldn't save records", text)
 
     def closeEvent(self, event):
         self.log.info('Close event on main window')
@@ -425,13 +556,16 @@ class MainWindow(*MainWindowBase):
         for logger in delete_this:
             self.destroy_logger(logger)
 
-    def shutdown(self, signal=None):
+    def shutdown(self):
         self.log.info('Shutting down')
-        if not self.stop_signal.is_set():  # do this for the first time shutdown is called
-            self.save_geometry()
-            self.destroy_all_tabs()
-            self.stop_reason = 'shutdown'
-            self.stop_signal.set()
-        else:
-            self.log.error('Forcefully shutting down')
+        if self.shutting_down:
+            self.log.error('Exiting forcefully')
             raise SystemExit
+        self.shutting_down = True
+        self.stop_server()
+        self.save_geometry()
+        self.destroy_all_tabs()
+        self.app.quit()
+
+    def signal_handler(self, *args):
+        self.shutdown()
