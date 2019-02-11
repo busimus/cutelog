@@ -31,8 +31,6 @@ class MainWindow(QMainWindow):
 
         self.setupUi()
         self.start_server()
-        # self.load_records('/home/bus/4krecords.log')
-        # self.load_records('/home/bus/busocket_records.log')
 
     def setupUi(self):
         self.resize(800, 600)

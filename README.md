@@ -27,7 +27,7 @@ Light theme | Dark theme
 <img src="https://raw.githubusercontent.com/busimus/cutelog/master/screenshots/main_light.png" width="240"> | <img src="https://raw.githubusercontent.com/busimus/cutelog/master/screenshots/main_dark.png" width="240">
 
 ## Installation
-**If you're using Linux**, install PyQt5 from your package manager before installing cutelog (package name is probably ``python3-pyqt5`` or ``python-pyqt5``). Or just run ``pip install pyqt5`` to install it from pip, which is sub-optimal.
+**If you're using Linux**, install PyQt5 (or PySide2) from your package manager before installing cutelog (package name is probably ``python3-pyqt5`` or ``python-pyqt5``). Or just run ``pip install pyqt5`` to install it from pip, which is sub-optimal.
 
 ```
 $ pip install cutelog

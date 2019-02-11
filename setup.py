@@ -5,7 +5,7 @@ from setuptools import setup
 from setuptools.command.install import install
 
 
-VERSION = '2.0.0'
+VERSION = '2.0.1'
 
 
 def build_qt_resources():
@@ -49,8 +49,10 @@ setup(
     author_email="busfromrus@gmail.com",
     url="https://github.com/busimus/cutelog/",
 
-    requires=['PyQt5', 'QtPy'],
     python_requires=">=3.5",
+    install_requires=['PyQt5;platform_system=="Darwin"',    # it's better to use distro-supplied
+                      'PyQt5;platform_system=="Windows"',   # PyQt package on Linux
+                      'QtPy'],
 
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -71,8 +73,6 @@ setup(
     download_url="https://github.com/Busimus/cutelog/archive/{}.zip".format(VERSION),
     entry_points={'console_scripts': 'cutelog=cutelog.__main__:main'},
     include_package_data=True,
-    install_requires=['PyQt5;platform_system=="Darwin"',    # it's better to use distro-supplied
-                      'PyQt5;platform_system=="Windows"'],  # PyQt package on Linux
     keywords=["log", "logging", "gui", "qt"],
     license="GPLv3",
     long_description=open(join(dirname(__file__), "README.rst")).read(),

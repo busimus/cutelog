@@ -152,6 +152,8 @@ class LogConnection(QThread):
             if not read_len:
                 break
             read_len = struct.unpack(">L", read_len)[0]
+            if read_len == 0:
+                continue
 
             data = wait_and_read(read_len)
             if not data:

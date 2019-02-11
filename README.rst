@@ -14,17 +14,17 @@ cutelog is cross-platform, although it's mainly written and optimized for Linux.
 Features
 ========
 * Allows any number of simultaneous connections
-* Fully customizable look of log levels and columns
-* Filtering based on level and name of the logger, as well as filtering by searching
+* Customizable look of log levels and columns, with presets for each
+* Filtering based on level and namespace, as well as filtering by searching
 * Search through all records or only through filtered ones
 * View exception tracebacks or messages in a separate window
 * Dark theme (with its own set of colors for levels)
 * Pop tabs out of the window, merge records of multiple tabs into one
-
+* Save/load records to/from a file in JSON format
 
 Installation
 ============
-**If you're using Linux**, install PyQt5 from your package manager before installing cutelog (package name is probably ``python3-pyqt5`` or ``python-pyqt5``). Or just run ``pip install pyqt5`` to install it from pip, which is sub-optimal.
+**If you're using Linux**, install PyQt5 (or PySide2) from your package manager before installing cutelog (package name is probably ``python3-pyqt5`` or ``python-pyqt5``). Or just run ``pip install pyqt5`` to install it from pip, which is sub-optimal.
 ::
 
     $ pip install --upgrade cutelog
