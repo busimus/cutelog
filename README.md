@@ -70,6 +70,6 @@ Free software used:
 And thanks to [logview](https://pythonhosted.org/logview/) by Vinay Sajip for UI inspiration.
 
 ### Copyright and license
-The program is licensed under the MIT License (see LICENSE file).
+This program is released under the MIT License (see LICENSE file).
 
-Copyright © 2019 Alexander Bus and contributors
+Copyright © 2019 Alexander Bus and contributors.
