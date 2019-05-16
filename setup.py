@@ -5,7 +5,7 @@ from setuptools import setup
 from setuptools.command.install import install
 
 
-VERSION = '2.0.1'
+VERSION = '2.0.2'
 
 
 def build_qt_resources():
@@ -61,7 +61,7 @@ setup(
         "Environment :: Win32 (MS Windows)",
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
-        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "License :: OSI Approved :: MIT License",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.5",
@@ -74,7 +74,7 @@ setup(
     entry_points={'console_scripts': 'cutelog=cutelog.__main__:main'},
     include_package_data=True,
     keywords=["log", "logging", "gui", "qt"],
-    license="GPLv3",
+    license="MIT",
     long_description=open(join(dirname(__file__), "README.rst")).read(),
     # package_data={"cutelog": ["styles/*", "ui/*"]}, # everything is in resources.py already
     data_files=[('share/applications', ['share/cutelog.desktop']),
