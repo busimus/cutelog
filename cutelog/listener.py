@@ -204,6 +204,8 @@ class LogConnection(QThread):
                 self.deserialize = self.serializers[value]
             else:
                 self.log.error('Serialization format "{}" is not supported'.format(value))
+        else:
+            self.log.error('No such command "{}"'.format(cmd))
 
 
 class BenchmarkConnection(LogConnection):

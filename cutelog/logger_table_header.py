@@ -100,7 +100,7 @@ class LoggerTableHeader(QObject):
     def regen_visible(self):
         self.visible_columns = [c for c in self.columns if c.visible]
         self.visible_names = set([c.name for c in self.visible_columns]) | SPECIAL_COLUMNS
-        print(self.visible_names)
+        # print(self.visible_names)
         for i, column in enumerate(self.visible_columns):
             self.header_view.resizeSection(i, column.width)
 

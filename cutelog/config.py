@@ -185,8 +185,15 @@ class Config(QObject):
             if option.type == bool:
                 value = str(value).lower()  # needed because QSettings stores bools as strings
                 value = True if value == "true" or value is True else False
+            elif option.type == int and value is None:
+                value = 0  # workaround for bug PYSIDE-820
             else:
-                value = option.type(value)
+                try:
+                    value = option.type(value)
+                except Exception:
+                    self.log.warn('Could not parse value "{}" for option "{}", falling back to the '
+                                  'default value "{}"'.format(value, option.name, option.default))
+                    value = option.default
             options[option.name] = value
         self.qsettings.endGroup()
         return options
