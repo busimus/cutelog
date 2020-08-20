@@ -20,6 +20,11 @@ def main():
     from qtpy.QtGui import QIcon
     from qtpy.QtWidgets import QApplication
 
+    if sys.platform == 'win32':
+        import ctypes
+        appid = 'busimus.cutelog'
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid)
+
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon(':/cutelog.png'))
     mw = MainWindow(ROOT_LOG, app)

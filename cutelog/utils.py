@@ -1,6 +1,7 @@
 import qtpy
 from qtpy.QtCore import QMetaObject, Qt
 from qtpy.QtWidgets import QDesktopWidget, QMessageBox
+from .text_view_dialog import TextViewDialog
 
 
 def show_info_dialog(parent, title, text):
@@ -24,6 +25,14 @@ def show_dialog(parent, title, text, icon):
     m.setIcon(icon)
     m.show()
     center_widget_on_screen(m)
+
+
+def show_textview_dialog(parent, title, text, icon=QMessageBox.Information):
+    d = TextViewDialog(parent, text)
+    d.setWindowModality(Qt.NonModal)
+    d.setAttribute(Qt.WA_DeleteOnClose, True)
+    d.setWindowTitle(title)
+    d.open()
 
 
 def center_widget_on_screen(widget):

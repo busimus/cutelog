@@ -165,6 +165,9 @@ class LogConnection(QThread):
 
             try:
                 logDict = self.deserialize(data)
+                for k, v in logDict.items():
+                    if type(v) not in (str, int, type(None)):
+                        logDict[k] = str(v)
                 record = LogRecord(logDict)
             except Exception:
                 self.log.error('Creating log record failed', exc_info=True)
@@ -250,7 +253,7 @@ class BenchmarkConnection(LogConnection):
             level_index = c % len(test_levels)
             dd['levelname'] = test_levels[level_index][1]
             if dd['levelname'] == "CRITICAL":
-                dd['exc_text'] = 'exception test'
+                dd['exc_text'] = 'exception test\nmultiple lines\ntest 123'
 
             for i in range(random.randrange(6)):
                 dd[str(i) + "f"] = random.randrange(256)

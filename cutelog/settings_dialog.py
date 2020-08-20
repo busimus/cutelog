@@ -10,7 +10,6 @@ from .utils import loadUi, show_info_dialog
 class SettingsDialog(QDialog):
     def __init__(self, parent):
         super().__init__(parent)
-        self.parent_widget = parent
         self.server_restart_needed = False
         self.time_format_validator = TimeFormatValidator(self)
         self.setupUi()
@@ -116,7 +115,7 @@ class SettingsDialog(QDialog):
     def accept(self):
         self.save_to_config()
         if self.server_restart_needed:
-            show_info_dialog(self.parent_widget, 'Warning',
+            show_info_dialog(self.parent(), 'Warning',
                              'You need to restart the server for the changes to take effect')
         self.done(0)
 
@@ -127,7 +126,7 @@ class SettingsDialog(QDialog):
         self.server_restart_needed = True
 
     def display_warning(self):
-        m = QMessageBox(self.parent_widget)
+        m = QMessageBox(self.parent())
         m.setText('You need to restart the server for the changes to take effect')
         m.setWindowTitle('Warning')
         m.setIcon(QMessageBox.Information)

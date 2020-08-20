@@ -13,8 +13,7 @@ from .level_edit_dialog import LevelEditDialog
 from .levels_preset_dialog import LevelsPresetDialog
 from .log_levels import NO_LEVEL, LevelFilter, LogLevel, get_default_level
 from .logger_table_header import HeaderEditDialog, LoggerTableHeader
-from .text_view_dialog import TextViewDialog
-from .utils import loadUi
+from .utils import loadUi, show_textview_dialog
 
 INVALID_INDEX = QModelIndex()
 SearchRole = 256
@@ -432,8 +431,8 @@ class RecordFilter(QSortFilterProxyModel):
 
 
 class DetailTableModel(QAbstractTableModel):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent):
+        super().__init__(parent)
         self.record = tuple()
 
     def columnCount(self, index):
@@ -467,6 +466,13 @@ class DetailTableModel(QAbstractTableModel):
         self.record = tuple(record_dict.items())
         self.reset()
 
+    def open_row_popup(self, index):
+        print(index)
+        print(index.row())
+        row = self.record[index.row()]
+        text = str(row[1]) if row[1] is not None else row[1]
+        show_textview_dialog(self.parent(), 'Field "{}"'.format(row[0]), text)
+
 
 class LoggerTab(QWidget):
     def __init__(self, parent, name, connection, log, main_window):
@@ -477,7 +483,7 @@ class LoggerTab(QWidget):
         self.main_window = main_window
         self.level_filter = LevelFilter()
         self.filter_model_enabled = True
-        self.detail_model = DetailTableModel()
+        self.detail_model = DetailTableModel(self)
         self.namespace_tree_model = LogNamespaceTreeModel()
         self.popped_out = False
         self.autoscroll = True
@@ -540,6 +546,7 @@ class LoggerTab(QWidget):
 
         self.loggerTable.selectionModel().selectionChanged.connect(self.update_detail)
         self.detailTable.setModel(self.detail_model)
+        self.detailTable.doubleClicked.connect(self.detail_model.open_row_popup)
 
         self.table_header_view = header = self.loggerTable.horizontalHeader()
         header.setStretchLastSection(True)
@@ -844,11 +851,9 @@ class LoggerTab(QWidget):
 
     def open_text_view_dialog(self, index, exception=False):
         record = self.get_record(index)
-        d = TextViewDialog(self.main_window, record.exc_text if exception else record.message)
-        d.setWindowModality(Qt.NonModal)
-        d.setAttribute(Qt.WA_DeleteOnClose, True)
-        d.setWindowTitle('Exception traceback' if exception else 'View message')
-        d.open()
+        text = record.exc_text if exception else record.message
+        title = 'Exception traceback' if exception else 'View message'
+        show_textview_dialog(self.main_window, title, text)
 
     def enable_all_levels(self):
         for row in range(self.levelsTable.rowCount()):
