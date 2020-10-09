@@ -4,7 +4,7 @@ import struct
 import time
 
 from qtpy.QtCore import QThread, Signal
-from qtpy.QtNetwork import QHostAddress, QTcpServer, QTcpSocket
+from qtpy.QtNetwork import QHostAddress, QTcpServer, QTcpSocket, QNetworkProxyFactory
 
 from .config import CONFIG, MSGPACK_SUPPORT, CBOR_SUPPORT
 from .logger_tab import LogRecord
@@ -27,6 +27,8 @@ class LogServer(QTcpServer):
         self.conn_count = 0
 
         self.threads = []
+        QNetworkProxyFactory.setUseSystemConfiguration(CONFIG['use_system_proxy'])
+
 
     def start(self):
         self.log.info('Starting the server')

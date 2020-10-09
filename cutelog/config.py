@@ -72,6 +72,7 @@ OPTION_SPEC = (
     ('single_tab_mode_default',      bool, False),
     ('extra_mode_default',           bool, False),
     ('default_serialization_format', str,  'pickle'),
+    ('use_system_proxy',             bool, False),
 
     # Advanced
     ('console_logging_level',        int,   30),
