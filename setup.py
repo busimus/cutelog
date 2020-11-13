@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from os.path import dirname, join
-from setuptools import setup
-from setuptools.command.install import install
 
+from setuptools import setup
+from setuptools.command.build_py import build_py
+from setuptools.command.install import install
 
 VERSION = '2.0.4'
 
@@ -15,7 +16,7 @@ def build_qt_resources():
     except ImportError as e:
         raise Exception("Building from source requires PyQt5") from e
     pyrcc_main.processResourceFile(['cutelog/resources/resources.qrc'],
-                                    'cutelog/resources.py', False)
+                                   'cutelog/resources.py', False)
     # Rewrite PyQt5 import statements to qtpy
     with open('cutelog/resources.py', 'r') as rf:
         lines = rf.readlines()
@@ -39,6 +40,17 @@ class CustomInstall(install):
         install.run(self)
 
 
+class CustomBuild(build_py):
+    def run(self):
+        try:
+            build_qt_resources()
+        except Exception as e:
+            print('Could not compile the resources.py file due to an exception: "{}"\n'
+                  'Aborting build.'.format(e))
+            raise
+        build_py.run(self)
+
+
 setup(
     name="cutelog",
     version=VERSION,
@@ -50,8 +62,8 @@ setup(
     url="https://github.com/busimus/cutelog/",
 
     python_requires=">=3.5",
-    install_requires=['PyQt5;platform_system=="Darwin"',    # it's better to use distro-supplied
-                      'PyQt5;platform_system=="Windows"',   # PyQt package on Linux
+    install_requires=['PyQt5;platform_system=="Darwin"',  # it's better to use distro-supplied
+                      'PyQt5;platform_system=="Windows"',  # PyQt package on Linux
                       'QtPy'],
 
     classifiers=[
@@ -80,5 +92,5 @@ setup(
     data_files=[('share/applications', ['share/cutelog.desktop']),
                 ('share/pixmaps', ['share/cutelog.png'])],
     zip_safe=False,
-    cmdclass=dict(install=CustomInstall)
+    cmdclass=dict(install=CustomInstall, build_py=CustomBuild)
 )

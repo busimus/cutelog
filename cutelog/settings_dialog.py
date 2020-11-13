@@ -62,6 +62,7 @@ class SettingsDialog(QDialog):
         self.listenPortLine.setText(str(CONFIG['listen_port']))
         self.singleTabCheckBox.setChecked(CONFIG['single_tab_mode_default'])
         self.extraModeCheckBox.setChecked(CONFIG['extra_mode_default'])
+        self.useSystemProxyCheckBox.setChecked(CONFIG['use_system_proxy'])
         if MSGPACK_SUPPORT:
             self.serializationFormatCombo.addItem("msgpack")
         if CBOR_SUPPORT:
@@ -105,6 +106,7 @@ class SettingsDialog(QDialog):
         o['single_tab_mode_default'] = self.singleTabCheckBox.isChecked()
         o['extra_mode_default'] = self.extraModeCheckBox.isChecked()
         o['default_serialization_format'] = self.serializationFormatCombo.currentText()
+        o['use_system_proxy'] = self.useSystemProxyCheckBox.isChecked()
 
         # Advanced
         o['benchmark_interval'] = float(self.benchmarkIntervalLine.text())
