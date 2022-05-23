@@ -508,6 +508,7 @@ class MainWindow(QMainWindow):
 
         d = QFileDialog(self)
         d.selectFile(logger.name + '.log')
+        d.setAcceptMode(QFileDialog.AcceptSave)
         d.setFileMode(QFileDialog.AnyFile)
         d.fileSelected.connect(partial(self.save_records, logger))
         d.setWindowTitle('Save records of "{}" tab to...'.format(logger.name))
