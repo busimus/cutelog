@@ -168,7 +168,7 @@ class LogConnection(QThread):
             try:
                 logDict = self.deserialize(data)
                 for k, v in logDict.items():
-                    if type(v) not in (str, int, type(None)):
+                    if type(v) not in (str, int, float, type(None)):
                         logDict[k] = str(v)
                 record = LogRecord(logDict)
             except Exception:
