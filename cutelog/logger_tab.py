@@ -450,7 +450,9 @@ class DetailTableModel(QAbstractTableModel):
         if index.isValid():
             row, column = index.row(), index.column()
             if role == Qt.DisplayRole:
-                return self.record[row][column]
+                row = self.record[index.row()]
+                data = str(row[column]) if row[column] is not None else row[column]
+                return data
         return None
 
     def clear(self):
@@ -467,8 +469,6 @@ class DetailTableModel(QAbstractTableModel):
         self.reset()
 
     def open_row_popup(self, index):
-        print(index)
-        print(index.row())
         row = self.record[index.row()]
         text = str(row[1]) if row[1] is not None else row[1]
         show_textview_dialog(self.parent(), 'Field "{}"'.format(row[0]), text)
