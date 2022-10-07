@@ -36,6 +36,8 @@ class SettingsDialog(QDialog):
                                           "Useful for when you're restarting one "
                                           "program very often.")
 
+        self.newConnClearsTabCheckBox.setToolTip("Only works with single tab mode")
+
     def load_from_config(self):
         # Appearance page
         self.darkThemeDefaultCheckBox.setChecked(CONFIG['dark_theme_default'])
@@ -61,6 +63,7 @@ class SettingsDialog(QDialog):
         self.listenPortLine.setValidator(QIntValidator(0, 65535, self))
         self.listenPortLine.setText(str(CONFIG['listen_port']))
         self.singleTabCheckBox.setChecked(CONFIG['single_tab_mode_default'])
+        self.newConnClearsTabCheckBox.setChecked(CONFIG['new_conn_clears_tab'])
         self.extraModeCheckBox.setChecked(CONFIG['extra_mode_default'])
         self.useSystemProxyCheckBox.setChecked(CONFIG['use_system_proxy'])
         if MSGPACK_SUPPORT:
@@ -104,6 +107,7 @@ class SettingsDialog(QDialog):
         o['listen_port'] = int(self.listenPortLine.text())
         o['console_logging_level'] = int(self.logLevelLine.text())
         o['single_tab_mode_default'] = self.singleTabCheckBox.isChecked()
+        o['new_conn_clears_tab'] = self.newConnClearsTabCheckBox.isChecked()
         o['extra_mode_default'] = self.extraModeCheckBox.isChecked()
         o['default_serialization_format'] = self.serializationFormatCombo.currentText()
         o['use_system_proxy'] = self.useSystemProxyCheckBox.isChecked()

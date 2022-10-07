@@ -66,7 +66,7 @@
       </sizepolicy>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="pageAppearance">
       <layout class="QGridLayout" name="gridLayout_3">
@@ -114,42 +114,42 @@
         </widget>
        </item>
        <item row="2" column="0">
-        <widget class="QLabel" name="label_2">
+        <widget class="QLabel" name="loggerTableFontLabel">
          <property name="text">
           <string>Font in logger tables</string>
          </property>
         </widget>
        </item>
        <item row="3" column="0">
-        <widget class="QLabel" name="label_3">
+        <widget class="QLabel" name="textViewFontLabel">
          <property name="text">
           <string>Font in text edit windows</string>
          </property>
         </widget>
        </item>
        <item row="4" column="0">
-        <widget class="QLabel" name="label_4">
+        <widget class="QLabel" name="loggerTableRowHeightLabel">
          <property name="text">
           <string>Table row line height</string>
          </property>
         </widget>
        </item>
        <item row="0" column="0">
-        <widget class="QLabel" name="label">
+        <widget class="QLabel" name="darkThemeDefaultLabel">
          <property name="text">
           <string>Dark theme by default</string>
          </property>
         </widget>
        </item>
        <item row="7" column="0">
-        <widget class="QLabel" name="label_6">
+        <widget class="QLabel" name="timeFormatLineLabel">
          <property name="text">
           <string>Time formatting string</string>
          </property>
         </widget>
        </item>
        <item row="6" column="0">
-        <widget class="QLabel" name="label_5">
+        <widget class="QLabel" name="excIndicationLabel">
          <property name="text">
           <string>Indicate exception with</string>
          </property>
@@ -233,7 +233,7 @@
         </spacer>
        </item>
        <item row="7" column="2">
-        <widget class="QLabel" name="label_11">
+        <widget class="QLabel" name="formattingHelpLabel">
          <property name="text">
           <string>&lt;a href=&quot;https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior&quot;&gt;Help&lt;/a&gt;</string>
          </property>
@@ -273,7 +273,7 @@
         <number>10</number>
        </property>
        <item row="2" column="0">
-        <widget class="QLabel" name="label_9">
+        <widget class="QLabel" name="searchCaseSensitiveDefaultLabel">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -286,7 +286,7 @@
         </widget>
        </item>
        <item row="0" column="0">
-        <widget class="QLabel" name="label_7">
+        <widget class="QLabel" name="searchOpenDefaultLabel">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -299,7 +299,7 @@
         </widget>
        </item>
        <item row="3" column="0">
-        <widget class="QLabel" name="label_10">
+        <widget class="QLabel" name="searchWildcardDefaultLabel">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -312,7 +312,7 @@
         </widget>
        </item>
        <item row="1" column="0">
-        <widget class="QLabel" name="label_8">
+        <widget class="QLabel" name="searchRegexDefaultLabel">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -396,8 +396,15 @@
        <property name="verticalSpacing">
         <number>10</number>
        </property>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_13">
+       <item row="7" column="1">
+        <widget class="QCheckBox" name="useSystemProxyCheckBox">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="serializationFormatLabel">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -405,12 +412,19 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>Server listen port</string>
+          <string>Default serialization format</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_12">
+       <item row="6" column="1">
+        <widget class="QCheckBox" name="extraModeCheckBox">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="newConnClearsTabLabel">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -418,20 +432,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>Server listen address</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="listenHostLine">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="placeholderText">
-          <string>0.0.0.0</string>
+          <string>New connection clears records</string>
          </property>
         </widget>
        </item>
@@ -468,39 +469,6 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_16">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Default serialization format</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_14">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Single tab mode by default</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QCheckBox" name="singleTabCheckBox">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
        <item row="3" column="0" colspan="2">
         <widget class="Line" name="line">
          <property name="orientation">
@@ -509,20 +477,7 @@
         </widget>
        </item>
        <item row="6" column="0">
-        <widget class="QLabel" name="label_18">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Use system proxy</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="label_15">
+        <widget class="QLabel" name="extraModeLabel">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -534,14 +489,7 @@
          </property>
         </widget>
        </item>
-       <item row="5" column="1">
-        <widget class="QCheckBox" name="extraModeCheckBox">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="0" colspan="2">
+       <item row="9" column="0" colspan="2">
         <spacer name="verticalSpacer_3">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -554,8 +502,80 @@
          </property>
         </spacer>
        </item>
-       <item row="6" column="1">
-        <widget class="QCheckBox" name="useSystemProxyCheckBox">
+       <item row="7" column="0">
+        <widget class="QLabel" name="useSystemProxyLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Use system proxy</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="listenPortLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Server listen port</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="listenHostLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Server listen address</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QCheckBox" name="singleTabCheckBox">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="singleTabLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Single tab mode by default</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="listenHostLine">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="placeholderText">
+          <string>0.0.0.0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QCheckBox" name="newConnClearsTabCheckBox">
          <property name="text">
           <string/>
          </property>
@@ -569,7 +589,7 @@
         <number>10</number>
        </property>
        <item row="0" column="0">
-        <widget class="QLabel" name="label_17">
+        <widget class="QLabel" name="logLevelLabel">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -582,7 +602,7 @@
         </widget>
        </item>
        <item row="1" column="0">
-        <widget class="QLabel" name="label_19">
+        <widget class="QLabel" name="benchmarkLabel">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -608,7 +628,7 @@
         </spacer>
        </item>
        <item row="2" column="0">
-        <widget class="QLabel" name="label_20">
+        <widget class="QLabel" name="benchmarkIntervalLabel">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -634,7 +654,7 @@
         </widget>
        </item>
        <item row="3" column="0">
-        <widget class="QLabel" name="label_21">
+        <widget class="QLabel" name="lightThemeNativeLabel">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
            <horstretch>0</horstretch>
