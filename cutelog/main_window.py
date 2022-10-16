@@ -22,7 +22,6 @@ class MainWindow(QMainWindow):
 
         self.dark_theme = CONFIG['dark_theme_default']
         self.single_tab_mode = CONFIG['single_tab_mode_default']
-        self.new_conn_clears_tab = CONFIG['new_conn_clears_tab']
 
         self.loggers_by_name = {}  # name -> LoggerTab
         self.popped_out_loggers = {}
@@ -268,7 +267,7 @@ class MainWindow(QMainWindow):
         if self.single_tab_mode and len(self.loggers_by_name) > 0:
             new_logger = list(self.loggers_by_name.values())[0]
             new_logger.add_connection(conn)
-            if self.new_conn_clears_tab:
+            if CONFIG['new_conn_clears_tab']:
                 new_logger.record_model.trim_except_last_n(0)
         else:
             new_logger, index = self.create_logger(conn)
