@@ -70,6 +70,7 @@ OPTION_SPEC = (
     ('listen_host',                  str,  '0.0.0.0'),
     ('listen_port',                  int,  19996),
     ('single_tab_mode_default',      bool, False),
+    ('new_conn_clears_tab',          bool, False),
     ('extra_mode_default',           bool, False),
     ('default_serialization_format', str,  'pickle'),
     ('use_system_proxy',             bool, False),
