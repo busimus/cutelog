@@ -72,10 +72,6 @@ class MainWindow(QMainWindow):
         self.actionSingleTab = self.menuFile.addAction('Single tab mode')
         self.actionSingleTab.setCheckable(True)
         self.actionSingleTab.setChecked(self.single_tab_mode or CONFIG['new_conn_clears_tab'])
-        if CONFIG['new_conn_clears_tab']:
-            self.actionSingleTab.setDisabled(True)
-            self.actionSingleTab.setToolTip("Enabled by the server setting that \
-                                             clears records on new connections")
         # self.actionReloadStyle = self.menuFile.addAction('Reload style')
         self.actionSettings = self.menuFile.addAction('Settings')
         self.menuFile.addSeparator()
@@ -167,6 +163,14 @@ class MainWindow(QMainWindow):
         else:
             self.actionMergeTabs.setDisabled(False)
 
+        self.actionSingleTab.setChecked(self.single_tab_mode or CONFIG['new_conn_clears_tab'])
+        if CONFIG['new_conn_clears_tab']:
+            self.actionSingleTab.setDisabled(True)
+            self.actionSingleTab.setToolTip("Enabled by the server setting that \
+                                             clears records on new connections")
+        else:
+            self.actionSingleTab.setDisabled(False)
+
     def set_single_tab_mode(self, enabled):
         self.single_tab_mode = enabled
 
@@ -189,7 +193,12 @@ class MainWindow(QMainWindow):
         d = SettingsDialog(self)
         d.setWindowModality(Qt.ApplicationModal)
         d.setAttribute(Qt.WA_DeleteOnClose, True)
+        d.settings_changed.connect(self.settings_changed)
         d.open()
+
+    def settings_changed(self, changed):
+        if changed:
+            self.change_actions_state()
 
     def about_dialog(self):
         d = AboutDialog(self)
@@ -269,7 +278,7 @@ class MainWindow(QMainWindow):
         self.log.debug('New connection id={}'.format(conn_id))
 
         if (self.single_tab_mode or CONFIG['new_conn_clears_tab']) and len(self.loggers_by_name) > 0:
-            new_logger = list(self.loggers_by_name.values())[0]
+            new_logger, _ = self.current_logger_and_index()
             new_logger.add_connection(conn)
             if CONFIG['new_conn_clears_tab']:
                 new_logger.record_model.trim_except_last_n(0)

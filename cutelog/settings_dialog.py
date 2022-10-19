@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from qtpy.QtCore import Signal
 from qtpy.QtGui import QDoubleValidator, QFont, QIntValidator, QValidator
 from qtpy.QtWidgets import QDialog, QDialogButtonBox, QMessageBox
 
@@ -8,6 +9,9 @@ from .utils import loadUi, show_info_dialog
 
 
 class SettingsDialog(QDialog):
+
+    settings_changed = Signal(bool)
+
     def __init__(self, parent):
         super().__init__(parent)
         self.server_restart_needed = False
@@ -123,6 +127,7 @@ class SettingsDialog(QDialog):
         if self.server_restart_needed:
             show_info_dialog(self.parent(), 'Warning',
                              'You need to restart the server for the changes to take effect')
+        self.settings_changed.emit(True)
         self.done(0)
 
     def reject(self):
