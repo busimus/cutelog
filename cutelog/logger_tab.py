@@ -189,6 +189,7 @@ class LogRecordModel(QAbstractTableModel):
         self.max_capacity = max_capacity
         self.table_header = header
         self.extra_mode = CONFIG['extra_mode_default']
+        self.word_wrap = CONFIG['word_wrap_default']
 
     def columnCount(self, index):
         return self.table_header.column_count
@@ -211,8 +212,10 @@ class LogRecordModel(QAbstractTableModel):
                 result = self.get_extra(record.message, record)
             else:
                 result = getattr(record, column_name, None)
-        elif role == Qt.SizeHintRole:
-            if self.extra_mode and self.table_header[index.column()].name == 'message':
+        elif role == Qt.SizeHintRole and self.table_header[index.column()].name == 'message':
+            if self.word_wrap:
+                return None
+            if self.extra_mode:
                 return QSize(1, CONFIG.logger_row_height *
                              (1 + len(self.get_fields_for_extra(record))))
             else:
@@ -295,6 +298,11 @@ class LogRecordModel(QAbstractTableModel):
         fields = self.get_fields_for_extra(record)
         result = ["{}={}".format(field, record._logDict[field]) for field in fields]
         if msg is not None:
+            # annoying, but otherwise extra args get cut off by the message
+            if not self.word_wrap:
+                msg_spl = msg.split('\n')
+                if len(msg_spl) > 1:
+                    msg = "{}…".format(msg_spl[0])
             result.insert(0, msg)
         return "\n".join(result)
 
@@ -494,6 +502,7 @@ class LoggerTab(QWidget):
             self.connections.append(connection)
         self.last_status_update_time = 0
         self.extra_mode = CONFIG['extra_mode_default']
+        self.word_wrap = CONFIG['word_wrap_default']
 
         self.search_bar_visible = CONFIG['search_open_default']
         self.search_regex = CONFIG['search_regex_default']
@@ -519,6 +528,10 @@ class LoggerTab(QWidget):
         self.loggerTable.customContextMenuRequested.connect(self.open_logger_table_menu)
 
         self.loggerTable.setStyleSheet("QTableView { border: 0px;}")
+        if self.word_wrap:
+            self.loggerTable.setWordWrap(True)
+            self.loggerTable.setVerticalScrollMode(self.loggerTable.ScrollPerPixel)
+            self.detailTable.setWordWrap(True)
 
         self.loggerTable.verticalHeader().setDefaultSectionSize(CONFIG['logger_row_height'])
 
@@ -876,6 +889,18 @@ class LoggerTab(QWidget):
         self.extra_mode = enabled
         self.record_model.extra_mode = enabled
         self.loggerTable.resizeRowsToContents()
+
+    def set_word_wrap(self, enabled):
+        self.word_wrap = enabled
+        self.record_model.word_wrap = enabled
+        self.loggerTable.setWordWrap(enabled)
+        self.detailTable.setWordWrap(enabled)
+        self.loggerTable.resizeRowsToContents()
+        self.detailTable.resizeRowsToContents()
+        if enabled:
+            self.loggerTable.setVerticalScrollMode(self.loggerTable.ScrollPerPixel)
+        else:
+            self.loggerTable.setVerticalScrollMode(self.loggerTable.ScrollPerItem)
 
     def level_double_clicked(self, index):
         row, column = index.row(), index.column()

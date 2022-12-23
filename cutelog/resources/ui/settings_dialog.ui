@@ -73,98 +73,19 @@
        <property name="verticalSpacing">
         <number>10</number>
        </property>
-       <item row="2" column="2">
-        <widget class="QSpinBox" name="loggerTableFontSize">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-           <horstretch>1</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimum">
-          <number>1</number>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QFontComboBox" name="textViewFont">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-           <horstretch>4</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QCheckBox" name="darkThemeDefaultCheckBox">
+       <item row="8" column="2">
+        <widget class="QLabel" name="formattingHelpLabel">
          <property name="text">
-          <string/>
+          <string>&lt;a href=&quot;https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior&quot;&gt;Help&lt;/a&gt;</string>
          </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QFontComboBox" name="loggerTableFont">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-           <horstretch>4</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
+         <property name="textFormat">
+          <enum>Qt::RichText</enum>
          </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="loggerTableFontLabel">
-         <property name="text">
-          <string>Font in logger tables</string>
+         <property name="openExternalLinks">
+          <bool>true</bool>
          </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="textViewFontLabel">
-         <property name="text">
-          <string>Font in text edit windows</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="loggerTableRowHeightLabel">
-         <property name="text">
-          <string>Table row line height</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="darkThemeDefaultLabel">
-         <property name="text">
-          <string>Dark theme by default</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0">
-        <widget class="QLabel" name="timeFormatLineLabel">
-         <property name="text">
-          <string>Time formatting string</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <widget class="QLabel" name="excIndicationLabel">
-         <property name="text">
-          <string>Indicate exception with</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="2">
-        <widget class="QSpinBox" name="textViewFontSize">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-           <horstretch>1</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimum">
-          <number>1</number>
+         <property name="textInteractionFlags">
+          <set>Qt::TextBrowserInteraction</set>
          </property>
         </widget>
        </item>
@@ -181,7 +102,88 @@
          </property>
         </widget>
        </item>
-       <item row="6" column="1">
+       <item row="9" column="0" colspan="3">
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="6" column="0" colspan="3">
+        <widget class="Line" name="line_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="textViewFontLabel">
+         <property name="text">
+          <string>Font in text edit windows</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QSpinBox" name="loggerTableFontSize">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimum">
+          <number>1</number>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="darkThemeDefaultLabel">
+         <property name="text">
+          <string>Dark theme by default</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QCheckBox" name="darkThemeDefaultCheckBox">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="loggerTableRowHeightLabel">
+         <property name="text">
+          <string>Table row line height</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
+        <widget class="QSpinBox" name="textViewFontSize">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimum">
+          <number>1</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0" colspan="3">
+        <widget class="Line" name="line_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="1">
         <widget class="QComboBox" name="excIndicationComboBox">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
@@ -206,7 +208,7 @@
          </item>
         </widget>
        </item>
-       <item row="7" column="1">
+       <item row="8" column="1">
         <widget class="QLineEdit" name="timeFormatLine">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
@@ -219,46 +221,58 @@
          </property>
         </widget>
        </item>
-       <item row="8" column="0" colspan="3">
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
+       <item row="3" column="1">
+        <widget class="QFontComboBox" name="textViewFont">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+           <horstretch>4</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
+        </widget>
        </item>
-       <item row="7" column="2">
-        <widget class="QLabel" name="formattingHelpLabel">
+       <item row="7" column="0">
+        <widget class="QLabel" name="excIndicationLabel">
          <property name="text">
-          <string>&lt;a href=&quot;https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior&quot;&gt;Help&lt;/a&gt;</string>
-         </property>
-         <property name="textFormat">
-          <enum>Qt::RichText</enum>
-         </property>
-         <property name="openExternalLinks">
-          <bool>true</bool>
-         </property>
-         <property name="textInteractionFlags">
-          <set>Qt::TextBrowserInteraction</set>
+          <string>Indicate exception with</string>
          </property>
         </widget>
        </item>
-       <item row="5" column="0" colspan="3">
-        <widget class="Line" name="line_2">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+       <item row="8" column="0">
+        <widget class="QLabel" name="timeFormatLineLabel">
+         <property name="text">
+          <string>Time formatting string</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="0" colspan="3">
-        <widget class="Line" name="line_3">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+       <item row="2" column="1">
+        <widget class="QFontComboBox" name="loggerTableFont">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+           <horstretch>4</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="loggerTableFontLabel">
+         <property name="text">
+          <string>Font in logger tables</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="wordWrapLabel">
+         <property name="text">
+          <string>Word wrap by default</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QCheckBox" name="wordWrapCheckBox">
+         <property name="text">
+          <string/>
          </property>
         </widget>
        </item>

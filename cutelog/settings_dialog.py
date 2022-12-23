@@ -51,6 +51,7 @@ class SettingsDialog(QDialog):
         self.textViewFont.setCurrentFont(QFont(CONFIG['text_view_dialog_font']))
         self.textViewFontSize.setValue(CONFIG['text_view_dialog_font_size'])
         self.loggerTableRowHeight.setValue(CONFIG['logger_row_height'])
+        self.wordWrapCheckBox.setChecked(CONFIG['word_wrap_default'])
         self.excIndicationComboBox.setCurrentIndex(CONFIG['exception_indication'])
         self.timeFormatLine.setText(CONFIG['time_format_string'])
         self.timeFormatLine.setValidator(self.time_format_validator)
@@ -97,6 +98,7 @@ class SettingsDialog(QDialog):
         o['text_view_dialog_font_size'] = self.textViewFontSize.value()
         o['exception_indication'] = self.excIndicationComboBox.currentIndex()
         o['logger_row_height'] = self.loggerTableRowHeight.value()
+        o['word_wrap_default'] = self.wordWrapCheckBox.isChecked()
         if self.timeFormatLine.hasAcceptableInput():
             o['time_format_string'] = self.timeFormatLine.text()
 
