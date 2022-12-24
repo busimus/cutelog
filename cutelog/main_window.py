@@ -95,6 +95,8 @@ class MainWindow(QMainWindow):
         self.menuServer = self.menubar.addMenu("Server")
         self.actionRestartServer = self.menuServer.addAction('Restart server')
         self.actionStartStopServer = self.menuServer.addAction('Stop server')
+        if CONFIG['benchmark']:
+            self.actionStopBenchmark = self.menuServer.addAction('Stop benchmark')
 
         # Records menu
         self.menuRecords = self.menubar.addMenu("Records")
@@ -129,6 +131,8 @@ class MainWindow(QMainWindow):
         # Server menu
         self.actionRestartServer.triggered.connect(self.restart_server)
         self.actionStartStopServer.triggered.connect(self.start_or_stop_server)
+        if CONFIG['benchmark']:
+            self.actionStopBenchmark.triggered.connect(self.stop_benchmark)
 
         # Records menu
         self.actionTrimTabRecords.triggered.connect(self.trim_records_dialog)
@@ -580,6 +584,10 @@ class MainWindow(QMainWindow):
         delete_this = list(self.loggers_by_name.values())  # to prevent changing during iteration
         for logger in delete_this:
             self.destroy_logger(logger)
+
+    def stop_benchmark(self):
+        if self.server:
+            self.server.stop_benchmark()
 
     def shutdown(self):
         self.log.info('Shutting down')

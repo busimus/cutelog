@@ -2,7 +2,7 @@ from collections import deque
 from datetime import datetime
 from functools import partial
 
-from qtpy.QtCore import (QAbstractItemModel, QAbstractTableModel, QEvent,
+from qtpy.QtCore import (QAbstractItemModel, QAbstractTableModel, QEvent, QItemSelectionModel,
                          QModelIndex, QSize, QSortFilterProxyModel, Qt)
 from qtpy.QtGui import QBrush, QColor, QFont
 from qtpy.QtWidgets import (QCheckBox, QHBoxLayout, QMenu, QShortcut, QStyle,
@@ -212,7 +212,9 @@ class LogRecordModel(QAbstractTableModel):
                 result = self.get_extra(record.message, record)
             else:
                 result = getattr(record, column_name, None)
-        elif role == Qt.SizeHintRole and self.table_header[index.column()].name == 'message':
+        elif role == Qt.SizeHintRole:
+            if self.table_header[index.column()].name != 'message':
+                return QSize(1, CONFIG.logger_row_height)
             if self.word_wrap:
                 return None
             if self.extra_mode:
@@ -696,7 +698,7 @@ class LoggerTab(QWidget):
     def set_search_visible(self, visible):
         # these 2 lines are for clearing selection when you press Esc with the search bar hidden
         if not self.search_bar_visible and not visible:
-            self.loggerTable.clearSelection()
+            self.loggerTable.selectionModel().setCurrentIndex(INVALID_INDEX, QItemSelectionModel.Clear)
 
         self.search_bar_visible = visible
         self.searchWidget.setVisible(self.search_bar_visible)
@@ -717,7 +719,14 @@ class LoggerTab(QWidget):
             self.register_logger(record.name)
         self.monitor_count += 1
 
-        self.loggerTable.resizeRowToContents(self.filter_model.rowCount() - 1)
+        if self.word_wrap:
+            self.loggerTable.resizeRowToContents(self.filter_model.rowCount() - 1)
+        elif self.extra_mode:
+            self.loggerTable.setRowHeight(self.filter_model.rowCount() - 1,
+                            CONFIG.logger_row_height * (1 + len(self.record_model.get_fields_for_extra(record))))
+        else:
+            self.loggerTable.setRowHeight(self.filter_model.rowCount() - 1, CONFIG.logger_row_height)
+
         if self.autoscroll:
             self.loggerTable.scrollToBottom()
 
@@ -861,6 +870,8 @@ class LoggerTab(QWidget):
         index = indexes[0]
         record = self.get_record(index)
         self.detail_model.set_record(record)
+        if self.word_wrap:
+            self.detailTable.resizeRowsToContents()
 
     def open_text_view_dialog(self, index, exception=False):
         record = self.get_record(index)
@@ -889,6 +900,8 @@ class LoggerTab(QWidget):
         self.extra_mode = enabled
         self.record_model.extra_mode = enabled
         self.loggerTable.resizeRowsToContents()
+        if self.autoscroll:
+            self.loggerTable.scrollToBottom()
 
     def set_word_wrap(self, enabled):
         self.word_wrap = enabled
@@ -896,11 +909,14 @@ class LoggerTab(QWidget):
         self.loggerTable.setWordWrap(enabled)
         self.detailTable.setWordWrap(enabled)
         self.loggerTable.resizeRowsToContents()
-        self.detailTable.resizeRowsToContents()
         if enabled:
             self.loggerTable.setVerticalScrollMode(self.loggerTable.ScrollPerPixel)
+            self.detailTable.resizeRowsToContents()
         else:
             self.loggerTable.setVerticalScrollMode(self.loggerTable.ScrollPerItem)
+            self.detailTable.reset()
+        if self.autoscroll:
+            self.loggerTable.scrollToBottom()
 
     def level_double_clicked(self, index):
         row, column = index.row(), index.column()
