@@ -80,6 +80,7 @@ OPTION_SPEC = (
     ('benchmark',                    bool,  False),
     ('benchmark_interval',           float, 0.0005),
     ('light_theme_is_native',        bool,  False),
+    ('resize_row_on_add',            bool,  True),
 
     # NON-SETTINGS OPTIONS:
     # Header
@@ -119,6 +120,7 @@ class Config(QObject):
         self.logger_table_font_size = None
         self.logger_row_height = None
         self.benchmark_interval = None
+        self.resize_row_on_add = True
 
         self.update_attributes()
 
@@ -217,6 +219,7 @@ class Config(QObject):
         self.logger_table_font_size = options.get('logger_table_font_size', self.logger_table_font_size)
         self.logger_row_height = options.get('logger_row_height', self.logger_row_height)
         self.set_logging_level(options.get('console_logging_level', ROOT_LOG.level))
+        self.resize_row_on_add = options.get('resize_row_on_add', self.resize_row_on_add)
 
     def emit_needed_changes(self, new_options):
         new_row_height = new_options.get('logger_row_height')

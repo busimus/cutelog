@@ -85,6 +85,7 @@ class SettingsDialog(QDialog):
         self.benchmarkIntervalLine.setValidator(QDoubleValidator(0, 1000, 9, self))
         self.benchmarkIntervalLine.setText(str(CONFIG['benchmark_interval']))
         self.lightThemeNativeCheckBox.setChecked(CONFIG['light_theme_is_native'])
+        self.resizeRowOnAdd.setChecked(CONFIG['resize_row_on_add'])
         self.server_restart_needed = False
 
     def save_to_config(self):
@@ -120,6 +121,7 @@ class SettingsDialog(QDialog):
         o['benchmark_interval'] = float(self.benchmarkIntervalLine.text())
         o['benchmark'] = self.benchmarkCheckBox.isChecked()
         o['light_theme_is_native'] = self.lightThemeNativeCheckBox.isChecked()
+        o['resize_row_on_add'] = self.resizeRowOnAdd.isChecked()
         CONFIG.update_options(o)
 
     def accept(self):

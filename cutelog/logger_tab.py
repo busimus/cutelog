@@ -704,7 +704,11 @@ class LoggerTab(QWidget):
             self.register_logger(record.name)
         self.monitor_count += 1
 
-        self.loggerTable.resizeRowToContents(self.filter_model.rowCount() - 1)
+        if CONFIG.resize_row_on_add:
+            # Not calling this on each record can give a boost of ~7-10% in some cases
+            # .. the only expense is that one may need to manually resize columns.
+            self.loggerTable.resizeRowToContents(self.filter_model.rowCount() - 1)
+
         if self.autoscroll:
             self.loggerTable.scrollToBottom()
 

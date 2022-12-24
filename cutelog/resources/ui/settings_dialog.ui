@@ -614,8 +614,8 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="0" colspan="2">
-        <spacer name="verticalSpacer_4">
+       <item row="5" column="0" colspan="2">
+        <spacer name="verticalSpacer_5">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -656,13 +656,26 @@
        <item row="3" column="0">
         <widget class="QLabel" name="lightThemeNativeLabel">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+          <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
          <property name="text">
           <string>Light theme is native style</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="resizeRowOnAddLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Resize each row based off the latest log record</string>
          </property>
         </widget>
        </item>
@@ -691,6 +704,10 @@
          <property name="text">
           <string/>
          </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QCheckBox" name="resizeRowOnAdd">
         </widget>
        </item>
       </layout>
