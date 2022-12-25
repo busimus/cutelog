@@ -24,22 +24,16 @@ class TreeNode:
         self.name = name
         self.parent = parent
         self.children = []
-
-    @property
-    def path(self):
-        result = [self.name]
-        cur_parent = self.parent
-        while cur_parent.parent is not None:
-            result.insert(0, cur_parent.name)
-            cur_parent = cur_parent.parent
-        return '.'.join(result)
-
-    @property
-    def row(self):
-        if self.parent:
-            return self.parent.children.index(self)
-        else:
-            return 0
+        self.path = None
+        self.row = 0
+        if parent:
+            result = [name]
+            cur_parent = parent
+            while cur_parent.parent is not None:
+                result.insert(0, cur_parent.name)
+                cur_parent = cur_parent.parent
+            self.path = '.'.join(result)
+            self.row = len(self.parent.children)
 
     def is_descendant_of(self, node_path):
         return self.path.startswith(node_path + '.')
@@ -322,6 +316,7 @@ class LogRecordModel(QAbstractTableModel):
         self.beginInsertRows(INVALID_INDEX, row, row)
         self.records.append(record)
         self.endInsertRows()
+        return row
 
     def trim_except_last_n(self, n):
         from itertools import islice
@@ -346,13 +341,13 @@ class LogRecordModel(QAbstractTableModel):
             self.endRemoveRows()
 
     def merge_with_records(self, new_records):
-        self.modelAboutToBeReset.emit()
+        self.beginResetModel()
         from itertools import chain
         from operator import attrgetter  # works faster than lambda, but not in pypy3
         new_records = deque(sorted(chain(self.records, new_records), key=attrgetter('created')))
         del self.records
         self.records = new_records
-        self.modelReset.emit()
+        self.endResetModel()
 
     def clear(self):
         self.records.clear()
@@ -714,18 +709,23 @@ class LoggerTab(QWidget):
         levelname = record.levelname
         if levelname:
             self.process_level(levelname)
-        self.record_model.add_record(record)
+        src_row = self.record_model.add_record(record)
         if record.name:
             self.register_logger(record.name)
         self.monitor_count += 1
 
+        src_index = self.record_model.index(src_row, 0, INVALID_INDEX)
+        table_row = self.filter_model.mapFromSource(src_index).row()
+        if table_row == -1:
+            return
+
         if self.word_wrap:
-            self.loggerTable.resizeRowToContents(self.filter_model.rowCount() - 1)
+            self.loggerTable.resizeRowToContents(table_row)
         elif self.extra_mode:
-            self.loggerTable.setRowHeight(self.filter_model.rowCount() - 1,
+            self.loggerTable.setRowHeight(table_row,
                             CONFIG.logger_row_height * (1 + len(self.record_model.get_fields_for_extra(record))))
         else:
-            self.loggerTable.setRowHeight(self.filter_model.rowCount() - 1, CONFIG.logger_row_height)
+            self.loggerTable.setRowHeight(table_row, CONFIG.logger_row_height)
 
         if self.autoscroll:
             self.loggerTable.scrollToBottom()
@@ -860,7 +860,10 @@ class LoggerTab(QWidget):
             if record.levelname:
                 level = self.process_level(record.levelname)
                 record.levelname = level.levelname
-        self.invalidate_filter(resize_rows=True)
+        if self.autoscroll:
+            self.loggerTable.scrollToBottom()
+        # # modelReset invalidates the filter already?
+        # self.invalidate_filter(resize_rows=False)
 
     def update_detail(self, sel, desel):
         indexes = sel.indexes()
@@ -1021,7 +1024,7 @@ class LoggerTab(QWidget):
     def invalidate_filter(self, resize_rows=True):
         self.filter_model.invalidateFilter()
         # resizeRowsToContents is very slow, so it's best to try to do it only when necessary
-        if resize_rows:
+        if resize_rows and (self.extra_mode or self.word_wrap):
             self.loggerTable.resizeRowsToContents()
         if self.autoscroll:
             self.loggerTable.scrollToBottom()
