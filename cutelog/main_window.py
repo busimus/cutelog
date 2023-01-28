@@ -90,11 +90,15 @@ class MainWindow(QMainWindow):
         self.menuTab.addSeparator()
         self.actionExtraMode = self.menuTab.addAction('Extra mode')
         self.actionExtraMode.setCheckable(True)
+        self.actionWordWrap = self.menuTab.addAction('Word wrap')
+        self.actionWordWrap.setCheckable(True)
 
         # Server menu
         self.menuServer = self.menubar.addMenu("Server")
         self.actionRestartServer = self.menuServer.addAction('Restart server')
         self.actionStartStopServer = self.menuServer.addAction('Stop server')
+        if CONFIG['benchmark']:
+            self.actionStopBenchmark = self.menuServer.addAction('Stop benchmark')
 
         # Records menu
         self.menuRecords = self.menubar.addMenu("Records")
@@ -124,10 +128,13 @@ class MainWindow(QMainWindow):
         self.actionPopIn.triggered.connect(self.pop_in_tabs_dialog)
         self.actionMergeTabs.triggered.connect(self.merge_tabs_dialog)
         self.actionExtraMode.triggered.connect(self.toggle_extra_mode)
+        self.actionWordWrap.triggered.connect(self.toggle_word_wrap)
 
         # Server menu
         self.actionRestartServer.triggered.connect(self.restart_server)
         self.actionStartStopServer.triggered.connect(self.start_or_stop_server)
+        if CONFIG['benchmark']:
+            self.actionStopBenchmark.triggered.connect(self.stop_benchmark)
 
         # Records menu
         self.actionTrimTabRecords.triggered.connect(self.trim_records_dialog)
@@ -140,13 +147,14 @@ class MainWindow(QMainWindow):
         logger, _ = self.current_logger_and_index()
         # if there are no loggers in tabs, these actions will be disabled:
         actions = [self.actionCloseTab, self.actionExtraMode, self.actionPopOut,
-                   self.actionRenameTab, self.actionPopIn,
+                   self.actionRenameTab, self.actionPopIn, self.actionWordWrap,
                    self.actionTrimTabRecords, self.actionSetMaxCapacity, self.actionSaveRecords]
 
         if not logger:
             for action in actions:
                 action.setDisabled(True)
             self.actionExtraMode.setChecked(False)
+            self.actionWordWrap.setChecked(False)
             if len(self.popped_out_loggers) > 0:
                 self.actionPopIn.setDisabled(False)
         else:
@@ -155,6 +163,7 @@ class MainWindow(QMainWindow):
             if len(self.loggers_by_name) == self.loggerTabWidget.count():
                 self.actionPopIn.setDisabled(True)
             self.actionExtraMode.setChecked(logger.extra_mode)
+            self.actionWordWrap.setChecked(logger.word_wrap)
 
         # if all loggers are popped in
         if len(self.popped_out_loggers) == 0:
@@ -248,6 +257,12 @@ class MainWindow(QMainWindow):
         if not logger:
             return
         logger.set_extra_mode(enabled)
+
+    def toggle_word_wrap(self, enabled):
+        logger, _ = self.current_logger_and_index()
+        if not logger:
+            return
+        logger.set_word_wrap(enabled)
 
     def start_server(self):
         self.log.debug('Starting the server')
@@ -572,6 +587,10 @@ class MainWindow(QMainWindow):
         delete_this = list(self.loggers_by_name.values())  # to prevent changing during iteration
         for logger in delete_this:
             self.destroy_logger(logger)
+
+    def stop_benchmark(self):
+        if self.server:
+            self.server.stop_benchmark()
 
     def shutdown(self):
         self.log.info('Shutting down')

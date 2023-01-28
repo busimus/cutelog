@@ -90,6 +90,11 @@ class LogServer(QTcpServer):
             self.log.error('Double delete on connection: {}'.format(connection), exc_info=True)
             return
 
+    def stop_benchmark(self):
+        for thread in self.threads.copy():
+            if thread.conn_id in ("benchmark", "benchmark_monitor"):
+                thread.tab_closed = True
+                thread.requestInterruption()
 
 class LogConnection(QThread):
 
@@ -273,6 +278,7 @@ class BenchmarkMonitor(QThread):
     def __init__(self, main_window, logger):
         super().__init__(main_window)
         self.logger = logger
+        self.conn_id = 'benchmark_monitor'
 
     def run(self):
         import time

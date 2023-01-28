@@ -2,7 +2,7 @@ from collections import deque
 from datetime import datetime
 from functools import partial
 
-from qtpy.QtCore import (QAbstractItemModel, QAbstractTableModel, QEvent,
+from qtpy.QtCore import (QAbstractItemModel, QAbstractTableModel, QEvent, QItemSelectionModel,
                          QModelIndex, QSize, QSortFilterProxyModel, Qt)
 from qtpy.QtGui import QBrush, QColor, QFont
 from qtpy.QtWidgets import (QCheckBox, QHBoxLayout, QMenu, QShortcut, QStyle,
@@ -24,22 +24,16 @@ class TreeNode:
         self.name = name
         self.parent = parent
         self.children = []
-
-    @property
-    def path(self):
-        result = [self.name]
-        cur_parent = self.parent
-        while cur_parent.parent is not None:
-            result.insert(0, cur_parent.name)
-            cur_parent = cur_parent.parent
-        return '.'.join(result)
-
-    @property
-    def row(self):
-        if self.parent:
-            return self.parent.children.index(self)
-        else:
-            return 0
+        self.path = None
+        self.row = 0
+        if parent:
+            result = [name]
+            cur_parent = parent
+            while cur_parent.parent is not None:
+                result.insert(0, cur_parent.name)
+                cur_parent = cur_parent.parent
+            self.path = '.'.join(result)
+            self.row = len(self.parent.children)
 
     def is_descendant_of(self, node_path):
         return self.path.startswith(node_path + '.')
@@ -189,6 +183,7 @@ class LogRecordModel(QAbstractTableModel):
         self.max_capacity = max_capacity
         self.table_header = header
         self.extra_mode = CONFIG['extra_mode_default']
+        self.word_wrap = CONFIG['word_wrap_default']
 
     def columnCount(self, index):
         return self.table_header.column_count
@@ -212,7 +207,11 @@ class LogRecordModel(QAbstractTableModel):
             else:
                 result = getattr(record, column_name, None)
         elif role == Qt.SizeHintRole:
-            if self.extra_mode and self.table_header[index.column()].name == 'message':
+            if self.table_header[index.column()].name != 'message':
+                return QSize(1, CONFIG.logger_row_height)
+            if self.word_wrap:
+                return None
+            if self.extra_mode:
                 return QSize(1, CONFIG.logger_row_height *
                              (1 + len(self.get_fields_for_extra(record))))
             else:
@@ -295,6 +294,11 @@ class LogRecordModel(QAbstractTableModel):
         fields = self.get_fields_for_extra(record)
         result = ["{}={}".format(field, record._logDict[field]) for field in fields]
         if msg is not None:
+            # annoying, but otherwise extra args get cut off by the message
+            if not self.word_wrap:
+                msg_spl = msg.split('\n')
+                if len(msg_spl) > 1:
+                    msg = "{}…".format(msg_spl[0])
             result.insert(0, msg)
         return "\n".join(result)
 
@@ -312,6 +316,7 @@ class LogRecordModel(QAbstractTableModel):
         self.beginInsertRows(INVALID_INDEX, row, row)
         self.records.append(record)
         self.endInsertRows()
+        return row
 
     def trim_except_last_n(self, n):
         from itertools import islice
@@ -336,13 +341,13 @@ class LogRecordModel(QAbstractTableModel):
             self.endRemoveRows()
 
     def merge_with_records(self, new_records):
-        self.modelAboutToBeReset.emit()
+        self.beginResetModel()
         from itertools import chain
         from operator import attrgetter  # works faster than lambda, but not in pypy3
         new_records = deque(sorted(chain(self.records, new_records), key=attrgetter('created')))
         del self.records
         self.records = new_records
-        self.modelReset.emit()
+        self.endResetModel()
 
     def clear(self):
         self.records.clear()
@@ -494,6 +499,7 @@ class LoggerTab(QWidget):
             self.connections.append(connection)
         self.last_status_update_time = 0
         self.extra_mode = CONFIG['extra_mode_default']
+        self.word_wrap = CONFIG['word_wrap_default']
 
         self.search_bar_visible = CONFIG['search_open_default']
         self.search_regex = CONFIG['search_regex_default']
@@ -519,6 +525,10 @@ class LoggerTab(QWidget):
         self.loggerTable.customContextMenuRequested.connect(self.open_logger_table_menu)
 
         self.loggerTable.setStyleSheet("QTableView { border: 0px;}")
+        if self.word_wrap:
+            self.loggerTable.setWordWrap(True)
+            self.loggerTable.setVerticalScrollMode(self.loggerTable.ScrollPerPixel)
+            self.detailTable.setWordWrap(True)
 
         self.loggerTable.verticalHeader().setDefaultSectionSize(CONFIG['logger_row_height'])
 
@@ -683,7 +693,7 @@ class LoggerTab(QWidget):
     def set_search_visible(self, visible):
         # these 2 lines are for clearing selection when you press Esc with the search bar hidden
         if not self.search_bar_visible and not visible:
-            self.loggerTable.clearSelection()
+            self.loggerTable.selectionModel().setCurrentIndex(INVALID_INDEX, QItemSelectionModel.Clear)
 
         self.search_bar_visible = visible
         self.searchWidget.setVisible(self.search_bar_visible)
@@ -699,12 +709,24 @@ class LoggerTab(QWidget):
         levelname = record.levelname
         if levelname:
             self.process_level(levelname)
-        self.record_model.add_record(record)
+        src_row = self.record_model.add_record(record)
         if record.name:
             self.register_logger(record.name)
         self.monitor_count += 1
 
-        self.loggerTable.resizeRowToContents(self.filter_model.rowCount() - 1)
+        src_index = self.record_model.index(src_row, 0, INVALID_INDEX)
+        table_row = self.filter_model.mapFromSource(src_index).row()
+        if table_row == -1:
+            return
+
+        if self.word_wrap:
+            self.loggerTable.resizeRowToContents(table_row)
+        elif self.extra_mode:
+            self.loggerTable.setRowHeight(table_row,
+                            CONFIG.logger_row_height * (1 + len(self.record_model.get_fields_for_extra(record))))
+        else:
+            self.loggerTable.setRowHeight(table_row, CONFIG.logger_row_height)
+
         if self.autoscroll:
             self.loggerTable.scrollToBottom()
 
@@ -838,7 +860,10 @@ class LoggerTab(QWidget):
             if record.levelname:
                 level = self.process_level(record.levelname)
                 record.levelname = level.levelname
-        self.invalidate_filter(resize_rows=True)
+        if self.autoscroll:
+            self.loggerTable.scrollToBottom()
+        # # modelReset invalidates the filter already?
+        # self.invalidate_filter(resize_rows=False)
 
     def update_detail(self, sel, desel):
         indexes = sel.indexes()
@@ -848,6 +873,8 @@ class LoggerTab(QWidget):
         index = indexes[0]
         record = self.get_record(index)
         self.detail_model.set_record(record)
+        if self.word_wrap:
+            self.detailTable.resizeRowsToContents()
 
     def open_text_view_dialog(self, index, exception=False):
         record = self.get_record(index)
@@ -876,6 +903,23 @@ class LoggerTab(QWidget):
         self.extra_mode = enabled
         self.record_model.extra_mode = enabled
         self.loggerTable.resizeRowsToContents()
+        if self.autoscroll:
+            self.loggerTable.scrollToBottom()
+
+    def set_word_wrap(self, enabled):
+        self.word_wrap = enabled
+        self.record_model.word_wrap = enabled
+        self.loggerTable.setWordWrap(enabled)
+        self.detailTable.setWordWrap(enabled)
+        self.loggerTable.resizeRowsToContents()
+        if enabled:
+            self.loggerTable.setVerticalScrollMode(self.loggerTable.ScrollPerPixel)
+            self.detailTable.resizeRowsToContents()
+        else:
+            self.loggerTable.setVerticalScrollMode(self.loggerTable.ScrollPerItem)
+            self.detailTable.reset()
+        if self.autoscroll:
+            self.loggerTable.scrollToBottom()
 
     def level_double_clicked(self, index):
         row, column = index.row(), index.column()
@@ -980,7 +1024,7 @@ class LoggerTab(QWidget):
     def invalidate_filter(self, resize_rows=True):
         self.filter_model.invalidateFilter()
         # resizeRowsToContents is very slow, so it's best to try to do it only when necessary
-        if resize_rows:
+        if resize_rows and (self.extra_mode or self.word_wrap):
             self.loggerTable.resizeRowsToContents()
         if self.autoscroll:
             self.loggerTable.scrollToBottom()

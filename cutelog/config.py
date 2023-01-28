@@ -57,6 +57,7 @@ OPTION_SPEC = (
     ('text_view_dialog_font',        str,  'Courier New'),
     ('text_view_dialog_font_size',   int,  12),
     ('logger_row_height',            int,  15),
+    ('word_wrap_default',            bool, False),
     ('exception_indication',         int,  Exc_Indication.RED_BG),
     ('time_format_string',           str,  "%Y-%m-%d %H:%M:%S.%f"),
 

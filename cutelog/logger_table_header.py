@@ -103,13 +103,10 @@ class LoggerTableHeader(QObject):
         # print(self.visible_names)
         for i, column in enumerate(self.visible_columns):
             self.header_view.resizeSection(i, column.width)
+        self.column_count = len(self.visible_columns)
 
     def __getitem__(self, index):
         return self.visible_columns[index]
-
-    @property
-    def column_count(self):
-        return len(self.visible_columns)
 
 
 class ColumnListItem(QListWidgetItem):
