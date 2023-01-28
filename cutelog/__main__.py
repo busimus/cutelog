@@ -14,7 +14,7 @@ if not qtpy.PYQT5 and not qtpy.PYSIDE2:
 
 def main():
     import signal
-    from .config import ROOT_LOG
+    from .config import ROOT_LOG, CONFIG, parse_cmdline
     from .main_window import MainWindow
     from .resources import qCleanupResources
     from qtpy.QtGui import QIcon
@@ -27,7 +27,9 @@ def main():
 
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon(':/cutelog.png'))
-    mw = MainWindow(ROOT_LOG, app)
+    overrides, load_logfiles = parse_cmdline(ROOT_LOG)
+    CONFIG.set_overrides(overrides)
+    mw = MainWindow(ROOT_LOG, app, load_logfiles)
     signal.signal(signal.SIGINT, mw.signal_handler)
 
     sys.exit(app.exec_())

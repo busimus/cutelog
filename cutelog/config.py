@@ -7,7 +7,7 @@ from distutils.version import StrictVersion
 
 from pkg_resources import get_distribution, resource_filename
 from qtpy import QT_VERSION
-from qtpy.QtCore import QCoreApplication, QFile, QObject, QSettings, Qt, Signal
+from qtpy.QtCore import QCoreApplication, QFile, QObject, QSettings, Qt, Signal, QCommandLineParser, QCommandLineOption, QStandardPaths
 
 if sys.platform == 'win':
     DEFAULT_FONT = 'MS Shell Dlg 2'
@@ -148,6 +148,10 @@ class Config(QObject):
         self.qsettings.setValue(name, value)
         self.qsettings.endGroup()
 
+    def set_overrides(self, overrides):
+        self.options.update(overrides)
+        self.update_attributes(overrides)
+
     @staticmethod
     def get_resource_path(name, directory='ui'):
         data_dir = resource_filename('cutelog', directory)
@@ -163,10 +167,14 @@ class Config(QObject):
         file.open(QFile.ReadOnly)
         return file
 
+    @staticmethod
+    def get_data_path():
+        return QStandardPaths.writableLocation(QStandardPaths.AppDataLocation)
+
     @property
     def listen_address(self):
-        host = self.options.get('listen_host')
-        port = self.options.get('listen_port')
+        host = self['listen_host']
+        port = self['listen_port']
         if host is None or port is None:
             raise Exception('Listen host or port not in options: "{}:{}"'.format(host, port))
         return (host, port)
@@ -391,6 +399,31 @@ def init_logging():
     log.setLevel(logging.DEBUG)
     return log
 
+def parse_cmdline(log):
+    parser = QCommandLineParser()
+    parser.addHelpOption()
+    parser.addVersionOption()
+    parser.addPositionalArgument('logfiles', 'Log files to load', '[logfiles...]')
+    spec = list(filter(lambda o: o[0] not in ('default_levels_preset', 'default_header_preset', 'cutelog_version'), OPTION_SPEC))
+    for option in spec:
+        if option[0] in ('default_levels_preset', 'default_header_preset', 'cutelog_version'):
+            continue
+        qoption = QCommandLineOption([option[0]], 'Default: {}'.format(option[2]), option[1].__name__)
+        parser.addOption(qoption)
+    parser.process(sys.argv)
+
+    overrides = {}
+    for option in spec:
+        if parser.isSet(option[0]):
+            log.warning('Overriding settings option "{}" with value "{}"'.format(option[0], parser.value(option[0])))
+            if option[1] is bool:
+                overrides[option[0]] = parser.value(option[0]).lower() in ('true', '1', 't', 'on', 'yes', 'y')
+            else:
+                overrides[option[0]] = option[1](parser.value(option[0]))
+    logfiles = []
+    if parser.positionalArguments():
+        logfiles = parser.positionalArguments()
+    return (overrides, logfiles)
 
 init_qt_info()
 ROOT_LOG = init_logging()

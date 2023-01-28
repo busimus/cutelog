@@ -15,7 +15,7 @@ from .utils import (center_widget_on_screen, show_critical_dialog,
 
 class MainWindow(QMainWindow):
 
-    def __init__(self, log, app):
+    def __init__(self, log, app, load_logfiles=[]):
         self.log = log.getChild('Main')
         self.app = app
         super().__init__()
@@ -30,6 +30,8 @@ class MainWindow(QMainWindow):
         self.shutting_down = False
 
         self.setupUi()
+        for filename in load_logfiles:
+            self.load_records(filename)
         self.start_server()
 
     def setupUi(self):
@@ -396,6 +398,7 @@ class MainWindow(QMainWindow):
                 for conn in src_logger.connections:
                     conn.new_record.disconnect(src_logger.on_record)
                     conn.connection_finished.disconnect(src_logger.remove_connection)
+                    conn.connection_finished.connect(dst_logger.remove_connection)
                     conn.new_record.connect(dst_logger.on_record)
                     dst_logger.add_connection(conn)
                 src_logger.connections.clear()
