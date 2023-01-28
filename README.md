@@ -64,7 +64,7 @@ Free software used:
 * Qt via either:
     * [PyQt5](https://riverbankcomputing.com/software/pyqt/intro) - GPLv3 License, Copyright (c) 2019 Riverbank Computing Limited <info@riverbankcomputing.com>
     * [PySide2](https://wiki.qt.io/PySide2) - LGPLv3 License, Copyright (C) 2015 The Qt Company Ltd (http://www.qt.io/licensing/)
-* [QtPy](https://github.com/spyder-ide/qtpy) - MIT License, Copyright © 2009–2019 The Spyder Development Team
+* [QtPy](https://github.com/spyder-ide/qtpy) - MIT License, Copyright (c) 2011- QtPy contributors and others
 * [ion-icons](https://github.com/ionic-team/ionicons) - MIT License, Copyright (c) 2015-present Ionic (http://ionic.io/)
 
 And thanks to [logview](https://pythonhosted.org/logview/) by Vinay Sajip for UI inspiration.
@@ -72,4 +72,4 @@ And thanks to [logview](https://pythonhosted.org/logview/) by Vinay Sajip for UI
 ### Copyright and license
 This program is released under the MIT License (see LICENSE file).
 
-Copyright © 2019 Alexander Bus and contributors.
+Copyright © 2023 bus and contributors.
