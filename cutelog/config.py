@@ -73,6 +73,7 @@ OPTION_SPEC = (
     ('single_tab_mode_default',      bool, False),
     ('new_conn_clears_tab',          bool, False),
     ('extra_mode_default',           bool, False),
+    ('sort_by_time',                 bool, True),
     ('default_serialization_format', str,  'pickle'),
     ('use_system_proxy',             bool, False),
 

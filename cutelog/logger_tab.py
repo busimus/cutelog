@@ -184,6 +184,7 @@ class LogRecordModel(QAbstractTableModel):
         self.table_header = header
         self.extra_mode = CONFIG['extra_mode_default']
         self.word_wrap = CONFIG['word_wrap_default']
+        self.sort_by_time = CONFIG['sort_by_time']
 
     def columnCount(self, index):
         return self.table_header.column_count
@@ -313,9 +314,18 @@ class LogRecordModel(QAbstractTableModel):
             self.trim_if_needed()
         row = len(self.records)
 
-        self.beginInsertRows(INVALID_INDEX, row, row)
-        self.records.append(record)
-        self.endInsertRows()
+        if row == 0 or not self.sort_by_time or record.created > self.records[-1].created:
+            self.beginInsertRows(INVALID_INDEX, row, row)
+            self.records.append(record)
+            self.endInsertRows()
+        else:
+            for row in range(len(self.records) - 1, -1, -1):
+                if record.created >= self.records[row].created:
+                    row += 1
+                    break
+            self.beginInsertRows(INVALID_INDEX, row, row)
+            self.records.insert(row, record)
+            self.endInsertRows()
         return row
 
     def trim_except_last_n(self, n):
@@ -864,6 +874,8 @@ class LoggerTab(QWidget):
             self.loggerTable.scrollToBottom()
         # # modelReset invalidates the filter already?
         # self.invalidate_filter(resize_rows=False)
+        if self.extra_mode or self.word_wrap:
+            self.loggerTable.resizeRowsToContents()
 
     def update_detail(self, sel, desel):
         indexes = sel.indexes()
