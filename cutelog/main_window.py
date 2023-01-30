@@ -526,12 +526,35 @@ class MainWindow(QMainWindow):
                 new_logger.merge_with_records(records)
                 self.loggerTabWidget.setCurrentIndex(index)
             self.set_status('Records have been loaded into "{}" tab'.format(new_logger.name))
-        except Exception as e:
-            if index:
-                self.close_tab(index)
-            text = "Error while loading records: \n{}".format(e)
-            self.log.error(text, exc_info=True)
-            show_critical_dialog(self, "Couldn't load records", text)
+        except:
+            try:
+                from ast import literal_eval
+                geeky_file = open(load_path, 'rt', encoding='utf-8')
+                lines = geeky_file.read().split('\n')
+                cleanLog = []
+                for l in lines:
+                    if l != '':
+                        dictionarys = literal_eval(l)
+                        cleanLog.append(dictionarys)
+                geeky_file.close()
+                json_output = json.dumps(cleanLog)
+                load_path_fix = load_path+".tmp"
+                with open(load_path_fix, 'w', encoding='utf8') as e:
+                    e.write(json_output)
+                with open(load_path_fix, 'r') as f:
+                    records = json.load(f, cls=RecordDecoder)
+                    new_logger, index = self.create_logger(None, name)
+                    new_logger.merge_with_records(records)
+                    self.loggerTabWidget.setCurrentIndex(index)
+                self.set_status('Records have been loaded into "{}" tab'.format(new_logger.name))
+                import os
+                os.remove(load_path_fix)
+            except Exception as e:
+                if index:
+                    self.close_tab(index)
+                text = "Error while loading records: \n{}".format(e)
+                self.log.error(text, exc_info=True)
+                show_critical_dialog(self, "Couldn't load records", text)
 
     def open_save_records_dialog(self):
         from functools import partial
