@@ -5,10 +5,8 @@ This is a graphical log viewer for Python's logging module.
 It can be targeted with a SocketHandler with no additional setup (see [Usage](#usage)).
 
 It can also be used from other languages or logging libraries with little effort (see the [Wiki](../../wiki/Creating-a-client-for-cutelog)).
-For example, a Go library [gocutelog](https://github.com/busimus/gocutelog) shows how to enable 
+For example, a Go library [gocutelog](https://github.com/busimus/gocutelog) shows how to enable
 regular Go logging libraries to connect to cutelog.
-
-This program is in beta, so please report bugs if you encounter them.
 
 ## Features
 * Allows any number of simultaneous connections
@@ -65,6 +63,7 @@ Free software used:
     * [PyQt5](https://riverbankcomputing.com/software/pyqt/intro) - GPLv3 License, Copyright (c) 2019 Riverbank Computing Limited <info@riverbankcomputing.com>
     * [PySide2](https://wiki.qt.io/PySide2) - LGPLv3 License, Copyright (C) 2015 The Qt Company Ltd (http://www.qt.io/licensing/)
 * [QtPy](https://github.com/spyder-ide/qtpy) - MIT License, Copyright (c) 2011- QtPy contributors and others
+* [jsonstream](https://github.com/Dunes/json_stream) - MIT License, Copyright (c) 2020 Dunes
 * [ion-icons](https://github.com/ionic-team/ionicons) - MIT License, Copyright (c) 2015-present Ionic (http://ionic.io/)
 
 And thanks to [logview](https://pythonhosted.org/logview/) by Vinay Sajip for UI inspiration.

@@ -145,6 +145,8 @@ class LogRecord:
         self.created = logDict.get("created")
         if self.created is None:
             self.created = logDict.get("time")
+            if self.created is None:
+                self.created = logDict.get("_created")
         if self.created is None or type(self.created) not in (int, float):
             self.created = datetime.now().timestamp()
 
@@ -741,7 +743,7 @@ class LoggerTab(QWidget):
             self.loggerTable.scrollToBottom()
 
     def add_conn_closed_record(self, conn):
-        record = LogRecord({'_cutelog': 'Connection {} closed'.format(conn.conn_id)})
+        record = LogRecord({'_cutelog': 'Connection {} closed'.format(conn.conn_id), 'created': datetime.now().timestamp()})
         self.on_record(record)
 
     def get_record(self, index):

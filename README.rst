@@ -7,8 +7,6 @@ cutelog
 
 This is a graphical log viewer for Python's standard logging module.
 It can be targeted with a SocketHandler with no additional setup (see Usage_).
-
-The program is in beta: it's lacking some features and may be unstable, but it works.
 cutelog is cross-platform, although it's mainly written and optimized for Linux.
 
 Features
@@ -17,6 +15,7 @@ Features
 * Customizable look of log levels and columns, with presets for each
 * Filtering based on level and namespace, as well as filtering by searching
 * Search through all records or only through filtered ones
+* Display extra fields under the message with `Extra mode <https://github.com/busimus/cutelog/wiki/Creating-a-client-for-cutelog#extra-mode>`_
 * View exception tracebacks or messages in a separate window
 * Dark theme (with its own set of colors for levels)
 * Pop tabs out of the window, merge records of multiple tabs into one

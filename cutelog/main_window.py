@@ -1,6 +1,7 @@
-from qtpy.QtCore import QFile, Qt, QTextStream
+from datetime import datetime
+from qtpy.QtCore import QFile, Qt, QTextStream, QThread, Signal
 from qtpy.QtWidgets import (QFileDialog, QInputDialog, QMainWindow, QMenuBar,
-                            QStatusBar, QTabWidget)
+                            QStatusBar, QTabWidget, QProgressDialog)
 
 from .about_dialog import AboutDialog
 from .config import CONFIG
@@ -14,6 +15,8 @@ from .utils import (center_widget_on_screen, show_critical_dialog,
 
 
 class MainWindow(QMainWindow):
+
+    load_records = Signal(object)
 
     def __init__(self, log, app, load_logfiles=[]):
         self.log = log.getChild('Main')
@@ -499,32 +502,28 @@ class MainWindow(QMainWindow):
         d.open()
 
     def load_records(self, load_path):
-        import json
-        from os import path
+        from functools import partial
+        progress = QProgressDialog('Loading records...', 'Cancel', 0, 0, parent=self)
+        progress.setAutoClose(True)
+        progress.forceShow()
+        lt = LoadingThread(load_path, self.log, self)
+        lt.done_loading.connect(self.open_loaded_records)
+        lt.loading_error.connect(partial(show_critical_dialog, self, 'Error while loading records'))
+        progress.canceled.connect(lt.requestInterruption)
+        lt.finished.connect(progress.reset)
+        lt.start(priority=QThread.LowPriority)
 
-        class RecordDecoder(json.JSONDecoder):
-            def __init__(self, *args, **kwargs):
-                json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
-
-            def object_hook(self, obj):
-                if '_created' in obj:
-                    obj['created'] = obj['_created']
-                    del obj['_created']
-                    record = LogRecord(obj)
-                    del record._logDict['created']
-                else:
-                    record = LogRecord(obj)
-                return record
-
-        name = path.basename(load_path)
+    def open_loaded_records(self, loaded):
+        self.log.debug("Received loaded records")
         index = None
-
         try:
-            with open(load_path, 'r') as f:
-                records = json.load(f, cls=RecordDecoder)
-                new_logger, index = self.create_logger(None, name)
-                new_logger.merge_with_records(records)
-                self.loggerTabWidget.setCurrentIndex(index)
+            if not loaded or not loaded[1]:
+                show_warning_dialog(self, "No records loaded", "No records could be loaded from the file")
+                return
+            logger_name, records = loaded
+            new_logger, index = self.create_logger(None, logger_name)
+            new_logger.merge_with_records(records)
+            self.loggerTabWidget.setCurrentIndex(index)
             self.set_status('Records have been loaded into "{}" tab'.format(new_logger.name))
         except Exception as e:
             if index:
@@ -540,7 +539,8 @@ class MainWindow(QMainWindow):
             return
 
         d = QFileDialog(self)
-        d.selectFile(logger.name + '.log')
+        dt = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        d.selectFile("{}_{}.log".format(logger.name, dt))
         d.setAcceptMode(QFileDialog.AcceptSave)
         d.setFileMode(QFileDialog.AnyFile)
         d.fileSelected.connect(partial(self.save_records, logger))
@@ -569,7 +569,7 @@ class MainWindow(QMainWindow):
             records = logger.record_model.records
             record_list = RecordList(records)
             with open(path, 'w') as f:
-                json.dump(record_list, f, indent=2)
+                json.dump(record_list, f, indent=1)
             self.set_status('Records have been saved to "{}"'.format(path))
 
         except Exception as e:
@@ -605,3 +605,78 @@ class MainWindow(QMainWindow):
 
     def signal_handler(self, *args):
         self.shutdown()
+
+
+class LoadingThread(QThread):
+    done_loading = Signal(object)
+    loading_error = Signal(str)
+
+    def __init__(self, load_path, log, parent=None):
+        super().__init__(parent)
+        self.load_path = load_path
+        self.log = log.getChild('LT')
+
+    def run(self):
+        from os import path
+        self.log.debug('Starting loading thread')
+        records = []
+
+        try:
+            name = path.basename(self.load_path)
+            file = open(self.load_path, 'r')
+        except Exception as e:
+            text = "Error while opening the file: \n{}".format(e)
+            self.log.error(text, exc_info=True)
+            self.loading_error.emit(text)
+            return
+        try:
+            records = self.load(file)
+        except Exception as e:
+            text = "Error while loading records: \n{}".format(e)
+            self.log.error(text, exc_info=True)
+            self.loading_error.emit(text)
+            return
+        self.log.debug('Loading finished')
+        if not self.isInterruptionRequested():
+            self.done_loading.emit((name, records))
+        else:
+            self.log.warning("Loading was interrupted")
+
+    def load(self, file):
+        try:
+            # Standard json module is the fastest when it comes to loading a single large object,
+            # and if it's not a valid JSON object it'll fail quickly and fall back to jsonstream
+            return self.load_native(file)
+        except Exception as e:
+            self.log.debug("Error while loading natively: {}".format(e), exc_info=True)
+        file.seek(0)
+        return self.load_stream(file)
+
+    def load_native(self, file):
+        self.log.debug("Attempting to load natively")
+        import json
+        records = []
+        rec_dicts = json.load(file)
+        for i, rec_dict in enumerate(rec_dicts):
+            records.append(LogRecord(rec_dict))
+            if i % 10000 == 0:
+                if self.isInterruptionRequested():
+                    break
+        if len(records) == 0:
+            raise Exception("No records found")
+        return records
+
+    def load_stream(self, file):
+        import jsonstream
+        self.log.debug("Attempting to load with jsonstream")
+        records = []
+        for i, data in enumerate(jsonstream.load(file)):
+            if type(data) == list:
+                for rec in data:
+                    records.append(LogRecord(rec))
+            else:
+                records.append(LogRecord(data))
+            if i % 1000 == 0:
+                if self.isInterruptionRequested():
+                    break
+        return records

@@ -6,7 +6,7 @@ from setuptools import setup
 from setuptools.command.build_py import build_py
 from setuptools.command.install import install
 
-VERSION = '2.1.0'
+VERSION = '2.2.0'
 
 
 def build_qt_resources():
@@ -64,7 +64,8 @@ setup(
     python_requires=">=3.5",
     install_requires=['PyQt5;platform_system=="Darwin"',  # it's better to use distro-supplied
                       'PyQt5;platform_system=="Windows"',  # PyQt package on Linux
-                      'QtPy'],
+                      'QtPy',
+                      'jsonstream==0.0.1'],
 
     classifiers=[
         "Development Status :: 4 - Beta",
